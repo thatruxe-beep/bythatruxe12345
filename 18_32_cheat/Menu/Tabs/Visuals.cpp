@@ -7,6 +7,7 @@ void Menu::DrawVisuals()
     static int subtab = 0;
     static float wallhackFade = 0.0f;
     static float timeFade = 0.0f;
+    static float aspectFade = 0.0f;
 
     std::vector<std::string> tabs = {
         tr("Валлхак", "Wallhack"),
@@ -55,15 +56,18 @@ void Menu::DrawVisuals()
         };
 
         flagCheckbox(tr("2D бокс", "2D box"), WH_BOX);
-        flagCheckbox("HP", WH_HP);
-        flagCheckbox(tr("Броня", "Armor"), WH_ARMOR);
+        flagCheckbox(tr("Полоса HP", "HP bar"), WH_HP);
+        flagCheckbox(tr("Полоса брони", "Armor bar"), WH_ARMOR);
+        flagCheckbox(tr("HP / броня текстом", "HP / armor text"), WH_TEXT);
+        flagCheckbox(tr("Дистанция", "Distance"), WH_DIST);
         flagCheckbox(tr("Скелет", "Skeleton"), WH_SKELETON);
-        flagCheckbox(tr("Трассер", "Tracer"), WH_SNAP);
+        flagCheckbox(tr("Трассер снизу", "Bottom tracer"), WH_SNAP);
 
         bool colorChanged = false;
         if (g_cfg.wh_flags & WH_BOX) colorChanged |= ColorPicker(tr("Цвет бокса", "Box color"), g_cfg.whcol);
         if (g_cfg.wh_flags & WH_HP) colorChanged |= ColorPicker(tr("Цвет HP", "HP color"), g_cfg.hpcol);
         if (g_cfg.wh_flags & WH_ARMOR) colorChanged |= ColorPicker(tr("Цвет брони", "Armor color"), g_cfg.armorcol);
+        if (g_cfg.wh_flags & (WH_TEXT | WH_DIST)) colorChanged |= ColorPicker(tr("Цвет текста", "Text color"), g_cfg.distcol);
         if (g_cfg.wh_flags & WH_SKELETON) colorChanged |= ColorPicker(tr("Цвет скелета", "Skeleton color"), g_cfg.skelcol);
         if (g_cfg.wh_flags & WH_SNAP) colorChanged |= ColorPicker(tr("Цвет трассера", "Tracer color"), g_cfg.snapcol);
         if (colorChanged) SaveGeneralConfig();
@@ -85,6 +89,24 @@ void Menu::DrawVisuals()
             widget_alpha_mul = timeFade;
             if (SliderFloat(tr("Час", "Hour"), &g_cfg.timehour,
                 0.0f, 23.0f, "%.0f"))
+            {
+                SaveGeneralConfig();
+            }
+            widget_alpha_mul = previousAlpha;
+        }
+        GroupEnd();
+
+        ImGui::NextColumn();
+        GroupBegin(tr("Экран", "Display"));
+        BindableCheckbox("aspect", tr("Соотношение сторон", "Aspect ratio"),
+            &g_cfg.aspect, &g_cfg.aspect_bind);
+        CreateAnimation(aspectFade, g_cfg.aspect, 0.3f, AnimLerp);
+        if (g_cfg.aspect || aspectFade > 0.02f)
+        {
+            const float previousAlpha = widget_alpha_mul;
+            widget_alpha_mul = aspectFade;
+            if (SliderFloat(tr("Значение", "Ratio"), &g_cfg.aspectval,
+                0.5f, 3.5f, "%.2f"))
             {
                 SaveGeneralConfig();
             }

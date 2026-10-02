@@ -7,7 +7,6 @@ void Menu::DrawMisc()
     static int subtab = 0;
     static float runFade = 0.0f;
     static float speedFade = 0.0f;
-    static float aspectFade = 0.0f;
 
     std::vector<std::string> items = {
         tr("Игрок", "Player"),
@@ -46,24 +45,6 @@ void Menu::DrawMisc()
         }
         BindableCheckbox("fastrot", tr("Быстрый поворот", "Fast rotation"),
             &g_cfg.fastrot, &g_cfg.fastrot_bind);
-        GroupEnd();
-
-        ImGui::NextColumn();
-        GroupBegin(tr("Экран", "Display"));
-        BindableCheckbox("aspect", tr("Соотношение сторон", "Aspect ratio"),
-            &g_cfg.aspect, &g_cfg.aspect_bind);
-        CreateAnimation(aspectFade, g_cfg.aspect, 0.3f, AnimLerp);
-        if (g_cfg.aspect || aspectFade > 0.02f)
-        {
-            const float previousAlpha = widget_alpha_mul;
-            widget_alpha_mul = aspectFade;
-            if (SliderFloat(tr("Значение", "Ratio"), &g_cfg.aspectval,
-                0.5f, 3.5f, "%.2f"))
-            {
-                SaveGeneralConfig();
-            }
-            widget_alpha_mul = previousAlpha;
-        }
         GroupEnd();
     }
     else

@@ -3,7 +3,6 @@
 #include "Game/Misc/FastRun.hpp"
 
 #include <algorithm>
-#include <cmath>
 
 void FastRun::ApplyRunSpeed(float speed)
 {
@@ -27,18 +26,17 @@ void FastRun::ApplyRunSpeed(float speed)
 void FastRun::Update()
 {
     static bool wasEnabled = false;
-    static float appliedSpeed = -1.0f;
-    const float requestedSpeed = g_cfg.fastbeg
-        ? std::clamp(g_cfg.fastbegs, 1.0f, 10.0f)
-        : 1.0f;
 
-    // Animation group updates are expensive and do not need to run every frame.
-    if (wasEnabled == g_cfg.fastbeg && fabsf(appliedSpeed - requestedSpeed) < 0.001f)
+    if (g_cfg.fastbeg)
     {
-        return;
+        // MTA may restore animation-group speeds every frame, so keep applying
+        // the selected multiplier while the feature is enabled.
+        ApplyRunSpeed(std::clamp(g_cfg.fastbegs, 1.0f, 10.0f));
+    }
+    else if (wasEnabled)
+    {
+        ApplyRunSpeed(1.0f);
     }
 
-    ApplyRunSpeed(requestedSpeed);
-    appliedSpeed = requestedSpeed;
     wasEnabled = g_cfg.fastbeg;
 }

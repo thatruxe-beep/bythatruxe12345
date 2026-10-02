@@ -57,49 +57,6 @@ void Esp::Update()
             continue;
         }
 
-        if (g_cfg.wh_flags & WH_SNAP)
-        {
-            const RwV3d epos = { foot.x, foot.y, foot.z - 1.1f };
-            RwV3d escr{};
-            float ew = 0.0f, eh = 0.0f;
-            ImVec2 to;
-
-            if (CSprite::CalcScreenCoors(epos, &escr, &ew, &eh, true, true))
-            {
-                to = ImVec2(escr.x, escr.y);
-            }
-            else
-            {
-                CMatrix& cm = TheCamera.m_mCameraMatrix;
-                float dx = foot.x - cm.pos.x;
-                float dy = foot.y - cm.pos.y;
-                float dz = foot.z - cm.pos.z;
-                float rx = dx * cm.right.x + dy * cm.right.y + dz * cm.right.z;
-                float fx = dx * cm.at.x + dy * cm.at.y + dz * cm.at.z;
-                float ang = atan2f(rx, fx);
-                float cx = ImGui::GetIO().DisplaySize.x * 0.5f;
-                float cy = ImGui::GetIO().DisplaySize.y * 0.5f;
-                float rr = (cx < cy ? cx : cy) * 0.9f;
-                to = ImVec2(cx + sinf(ang) * rr, cy - cosf(ang) * rr);
-            }
-
-            const RwV3d lpos = { localPos.x, localPos.y, localPos.z - 1.1f };
-            RwV3d lscr{};
-            float lw = 0.0f, lh = 0.0f;
-            ImVec2 from;
-
-            if (CSprite::CalcScreenCoors(lpos, &lscr, &lw, &lh, true, true))
-            {
-                from = ImVec2(lscr.x, lscr.y);
-            }
-            else
-            {
-                from = ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y);
-            }
-
-            draw->AddLine(from, to, snapCol, 2.0f);
-        }
-
         {
             float tx = foot.x - camM.pos.x;
             float ty = foot.y - camM.pos.y;
@@ -151,6 +108,14 @@ void Esp::Update()
         const ImVec2 min(headScr.x - boxW * 0.5f, headScr.y);
         const ImVec2 max(headScr.x + boxW * 0.5f, footScr.y);
 
+        if (g_cfg.wh_flags & WH_SNAP)
+        {
+            const ImVec2 from(ImGui::GetIO().DisplaySize.x * 0.5f,
+                ImGui::GetIO().DisplaySize.y - 1.0f);
+            const ImVec2 to((min.x + max.x) * 0.5f, max.y);
+            draw->AddLine(from, to, snapCol, 2.0f);
+        }
+
         if (g_cfg.wh_flags & WH_BOX)
         {
             draw->AddRect(min - ImVec2(1.0f, 1.0f), max + ImVec2(1.0f, 1.0f), backCol, 0.0f, 0, 1.0f);
@@ -177,6 +142,19 @@ void Esp::Update()
             draw->AddRect(barMin - ImVec2(1.0f, 1.0f), barMax + ImVec2(1.0f, 1.0f), backCol, 0.0f, 0, 1.0f);
             draw->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, 150), 0.0f);
             draw->AddRectFilled(ImVec2(barMin.x, barMax.y - (barMax.y - barMin.y) * ap), barMax, armorCol, 0.0f);
+        }
+
+        if (g_cfg.wh_flags & WH_TEXT)
+        {
+            char buf[40]{};
+            snprintf(buf, sizeof(buf), "HP: %d  Armor: %d",
+                (int)std::clamp(ped->m_fHealth, 0.0f, 100.0f),
+                (int)std::clamp(ped->m_fArmour, 0.0f, 100.0f));
+            const ImVec2 textSize = ImGui::CalcTextSize(buf);
+            const ImVec2 tp((min.x + max.x - textSize.x) * 0.5f,
+                min.y - textSize.y - 3.0f * s);
+            draw->AddText(tp + ImVec2(1.0f, 1.0f), IM_COL32(0, 0, 0, 220), buf);
+            draw->AddText(tp, textCol, buf);
         }
 
         if (g_cfg.wh_flags & WH_DIST)
