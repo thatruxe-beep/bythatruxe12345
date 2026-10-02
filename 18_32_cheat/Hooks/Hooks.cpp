@@ -55,8 +55,6 @@ namespace
         g_cfg.carcolor = false;
         g_cfg.nocol = false;
         g_cfg.randomgodmode = false;
-        g_cfg.doublejump = false;
-        g_cfg.fastzoom = false;
         g_cfg.autorepair = false;
         g_cfg.ram = false;
 
@@ -69,7 +67,6 @@ namespace
         NoBikeFall::Update();
         Aspect::Update();
         Fov::Update();
-        FastZoom::Update();
         Ram::Update();
         FastCrosshair::Update();
         NoRecoil::Update();

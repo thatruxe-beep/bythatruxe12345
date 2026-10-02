@@ -213,9 +213,6 @@ bool config_t::Save(const std::string& name)
     WriteInt(body, "randomgodmode_key", randomgodmode_bind.key);
     WriteInt(body, "randomgodmode_mode", randomgodmode_bind.mode);
     WriteInt(body, "randomgodmode_chance", randomgodmode_chance);
-    WriteBool(body, "doublejump", doublejump);
-    WriteInt(body, "doublejump_key", doublejump_bind.key);
-    WriteInt(body, "doublejump_mode", doublejump_bind.mode);
     WriteBool(body, "nofall", nofall);
     WriteInt(body, "nofall_key", nofall_bind.key);
     WriteInt(body, "nofall_mode", nofall_bind.mode);
@@ -321,7 +318,6 @@ bool config_t::Save(const std::string& name)
     WriteBool(body, "fastcross", fastcross);
     WriteInt(body, "fastcross_key", fastcross_bind.key);
     WriteInt(body, "fastcross_mode", fastcross_bind.mode);
-    WriteBool(body, "fastzoom", fastzoom);
     WriteBool(body, "norecoil", norecoil);
     WriteInt(body, "norecoil_key", norecoil_bind.key);
     WriteInt(body, "norecoil_mode", norecoil_bind.mode);
@@ -419,9 +415,6 @@ bool config_t::Load(const std::string& name)
     else if (key == "randomgodmode_key") { ReadInt(value, randomgodmode_bind.key); }
     else if (key == "randomgodmode_mode") { ReadInt(value, randomgodmode_bind.mode); }
     else if (key == "randomgodmode_chance") { ReadInt(value, randomgodmode_chance); }
-    else if (key == "doublejump") { ReadBool(value, doublejump); }
-    else if (key == "doublejump_key") { ReadInt(value, doublejump_bind.key); }
-    else if (key == "doublejump_mode") { ReadInt(value, doublejump_bind.mode); }
         else if (key == "nofall") { ReadBool(value, nofall); }
         else if (key == "nofall_key") { ReadInt(value, nofall_bind.key); }
         else if (key == "nofall_mode") { ReadInt(value, nofall_bind.mode); }
@@ -554,7 +547,6 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "fastcross") { ReadBool(value, fastcross); }
     else if (key == "fastcross_key") { ReadInt(value, fastcross_bind.key); }
     else if (key == "fastcross_mode") { ReadInt(value, fastcross_bind.mode); }
-    else if (key == "fastzoom") { ReadBool(value, fastzoom); }
     else if (key == "norecoil") { ReadBool(value, norecoil); }
     else if (key == "norecoil_key") { ReadInt(value, norecoil_bind.key); }
     else if (key == "norecoil_mode") { ReadInt(value, norecoil_bind.mode); }

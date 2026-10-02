@@ -355,16 +355,6 @@
       <Filter>Game\Misc</Filter>
 
     </ClCompile>
-    <ClCompile Include="Game\Legit\FastZoom.cpp">
-
-      <Filter>Game\Legit</Filter>
-
-    </ClCompile>
-    <ClCompile Include="Game\Rage\DoubleJump.cpp">
-
-      <Filter>Game\Rage</Filter>
-
-    </ClCompile>
     <ClCompile Include="Game\Rage\RandomGodMode.cpp">
 
       <Filter>Game\Rage</Filter>
@@ -814,16 +804,6 @@
     <ClInclude Include="Game\Misc\Ram.hpp">
 
       <Filter>Game\Misc</Filter>
-
-    </ClInclude>
-    <ClInclude Include="Game\Legit\FastZoom.hpp">
-
-      <Filter>Game\Legit</Filter>
-
-    </ClInclude>
-    <ClInclude Include="Game\Rage\DoubleJump.hpp">
-
-      <Filter>Game\Rage</Filter>
 
     </ClInclude>
     <ClInclude Include="Game\Rage\RandomGodMode.hpp">

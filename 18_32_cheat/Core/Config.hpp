@@ -26,8 +26,6 @@ struct config_t
     bool randomgodmode = false;
     keybind_t randomgodmode_bind{};
     int randomgodmode_chance = 50;
-    bool doublejump = false;
-    keybind_t doublejump_bind{};
     bool nofall = false;
     keybind_t nofall_bind{};
     bool fastbeg = false;
@@ -105,7 +103,6 @@ struct config_t
     keybind_t autorepair_bind{};
     bool fastcross = false;
     keybind_t fastcross_bind{};
-    bool fastzoom = false;
     bool norecoil = false;
     keybind_t norecoil_bind{};
     bool nospread = false;

@@ -38,7 +38,6 @@ void KeyBinds::Update()
 {
     ProcessBind(g_cfg.godmode_bind, g_cfg.godmode);
     ProcessBind(g_cfg.randomgodmode_bind, g_cfg.randomgodmode);
-    ProcessBind(g_cfg.doublejump_bind, g_cfg.doublejump);
     ProcessBind(g_cfg.nofall_bind, g_cfg.nofall);
     ProcessBind(g_cfg.fastbeg_bind, g_cfg.fastbeg);
     ProcessBind(g_cfg.wh_bind, g_cfg.wh);

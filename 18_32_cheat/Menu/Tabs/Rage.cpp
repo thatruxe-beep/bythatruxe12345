@@ -66,8 +66,6 @@ void Menu::DrawRage()
         }
         widget_alpha_mul = previousAlpha;
     }
-    BindableCheckbox("double_jump", tr("Двойной прыжок", "Double jump"),
-        &g_cfg.doublejump, &g_cfg.doublejump_bind);
     BindableCheckbox("nocol", tr("Анти-коллизия", "Anti collision"),
         &g_cfg.nocol, &g_cfg.nocol_bind);
 

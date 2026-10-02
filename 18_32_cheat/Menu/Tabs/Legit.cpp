@@ -14,11 +14,6 @@ void Menu::DrawLegit()
         &g_cfg.nospread, &g_cfg.nospread_bind);
     BindableCheckbox("fastcross", tr("Быстрый прицел", "Fast crosshair"),
         &g_cfg.fastcross, &g_cfg.fastcross_bind);
-    if (Checkbox(tr("Быстрый зум (ПКМ + СКМ)", "Fast zoom (RMB + MMB)"),
-        &g_cfg.fastzoom))
-    {
-        SaveGeneralConfig();
-    }
     GroupEnd();
 
     ImGui::EndChild(false);

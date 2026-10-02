@@ -26,10 +26,6 @@ void AirBreak::Run()
             TheCamera.m_aCams[TheCamera.m_nActiveCam].m_fFOV = v;
         }
 
-        // Poll MMB from the 1 ms worker so even a very short click reliably
-        // emits the requested forty WheelUp events.
-        FastZoom::Update();
-
         if (!GetModuleHandleA("client.dll"))
         {
             Sleep(100);

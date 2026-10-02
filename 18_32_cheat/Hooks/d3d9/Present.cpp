@@ -57,7 +57,6 @@ LRESULT WINAPI WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM l
 {
     WndProcCallGuard callGuard;
     WNDPROC original = oWndProc;
-    DoubleJump::HandleKeyMessage(message, wParam);
     const bool shuttingDown = InterlockedCompareExchange(&sShuttingDown, 0, 0) != 0;
     const bool is_open = !shuttingDown && (menu && menu->GetState());
 
