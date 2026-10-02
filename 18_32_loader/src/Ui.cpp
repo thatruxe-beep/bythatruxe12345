@@ -390,6 +390,6 @@ void RenderLoader(LoaderModel& model, LoaderController& controller, float scale)
     draw->AddText(s_fontRegular, 11.0f * scale,
                   ImVec2(origin.x, windowBottom.y - 20.0f * scale), U32(kMuted), footer);
 
-    ImGui::End();
+    ImGui::End(false);
     ImGui::PopStyleVar();
 }

@@ -8,7 +8,7 @@
 std::string GetMachineId()
 {
     DWORD volumeSerial = 0;
-    GetVolumeInformationW(L"C:\\", nullptr, 0, nullptr, &volumeSerial, nullptr, nullptr, 0);
+    GetVolumeInformationW(L"C:\\", nullptr, 0, &volumeSerial, nullptr, nullptr, nullptr, 0);
 
     wchar_t computer[MAX_COMPUTERNAME_LENGTH + 2] = {};
     DWORD size = MAX_COMPUTERNAME_LENGTH + 1;

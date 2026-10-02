@@ -167,7 +167,7 @@ namespace
     uint64_t ComputeMachineHwid()
     {
         DWORD volumeSerial = 0;
-        GetVolumeInformationW(L"C:\\", nullptr, 0, &volumeSerial, nullptr, nullptr, 0);
+        GetVolumeInformationW(L"C:\\", nullptr, 0, &volumeSerial, nullptr, nullptr, nullptr, 0);
 
         wchar_t computer[MAX_COMPUTERNAME_LENGTH + 2] = {};
         DWORD size = MAX_COMPUTERNAME_LENGTH + 1;

@@ -187,7 +187,7 @@ void Auth::Draw()
                   ImVec2(origin.x + width - contactSize.x, bottom),
                   U32(kMuted), contact);
 
-    ImGui::End();
+    ImGui::End(false);
 
     ImGui::PopStyleVar(5);
     ImGui::PopStyleColor(5);
