@@ -13,61 +13,27 @@ namespace
         char letter, ImU32 outline, ImU32 fill)
     {
         const ImVec2 max = min + ImVec2(size, size);
-        list->AddRectFilled(min, max, fill, 1.5f);
-        list->AddRect(min, max, outline, 1.5f, 0, 1.0f);
+        list->AddRectFilled(min, max, fill, 2.0f);
+        list->AddRect(min, max, outline, 2.0f, 0, ImMax(1.0f, size * 0.08f));
 
-        const float x = min.x;
-        const float y = min.y;
-        const float a = size * 0.30f;
-        const float b = size * 0.70f;
-        const float m = size * 0.50f;
-        const float top = y + size * 0.31f;
-        const float bot = y + size * 0.69f;
-        const float stroke = ImMax(0.75f, size * 0.09f);
+        const float fontSize = size * 0.62f;
+        const char text[2] = { letter, '\0' };
+        const ImVec2 textSize = g_fonts.main->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, text);
+        const ImVec2 textPos(
+            min.x + (size - textSize.x) * 0.5f,
+            min.y + (size - textSize.y) * 0.5f - size * 0.03f);
 
-        // Keep anti-aliased letter strokes strictly inside their key cap.
-        list->PushClipRect(min + ImVec2(1.0f, 1.0f), max - ImVec2(1.0f, 1.0f), true);
-
-        if (letter == 'W')
-        {
-            const ImVec2 points[] = {
-                ImVec2(x + a, top), ImVec2(x + size * 0.37f, bot),
-                ImVec2(x + m, y + size * 0.48f), ImVec2(x + size * 0.63f, bot),
-                ImVec2(x + b, top)
-            };
-            list->AddPolyline(points, 5, outline, false, stroke);
-        }
-        else if (letter == 'A')
-        {
-            list->AddLine(ImVec2(x + a, bot), ImVec2(x + m, top), outline, stroke);
-            list->AddLine(ImVec2(x + m, top), ImVec2(x + b, bot), outline, stroke);
-            list->AddLine(ImVec2(x + size * 0.36f, y + size * 0.56f),
-                ImVec2(x + size * 0.64f, y + size * 0.56f), outline, stroke);
-        }
-        else if (letter == 'S')
-        {
-            const ImVec2 points[] = {
-                ImVec2(x + b, top), ImVec2(x + a, top),
-                ImVec2(x + a, y + size * 0.50f), ImVec2(x + b, y + size * 0.50f),
-                ImVec2(x + b, bot), ImVec2(x + a, bot)
-            };
-            list->AddPolyline(points, 6, outline, false, stroke);
-        }
-        else
-        {
-            list->AddLine(ImVec2(x + a, top), ImVec2(x + a, bot), outline, stroke);
-            list->AddLine(ImVec2(x + a, top), ImVec2(x + size * 0.58f, top), outline, stroke);
-            list->AddLine(ImVec2(x + a, bot), ImVec2(x + size * 0.58f, bot), outline, stroke);
-            list->AddLine(ImVec2(x + size * 0.58f, top), ImVec2(x + b, y + size * 0.50f), outline, stroke);
-            list->AddLine(ImVec2(x + b, y + size * 0.50f), ImVec2(x + size * 0.58f, bot), outline, stroke);
-        }
-
+        // Font clipping is DPI-safe and guarantees that no glyph can leave
+        // its key cap even at 200% UI scale.
+        list->PushClipRect(min + ImVec2(size * 0.10f, size * 0.10f),
+            max - ImVec2(size * 0.10f, size * 0.10f), true);
+        list->AddText(g_fonts.main, fontSize, textPos, outline, text);
         list->PopClipRect();
     }
 
     void DrawWasdIcon(ImDrawList* list, const ImVec2& pos, float scale, float alpha)
     {
-        const float key = 7.0f * scale;
+        const float key = 9.0f * scale;
         const float gap = 1.0f * scale;
         const ImU32 outline = static_cast<ImU32>(g_cfg.accent.to_color((int)(255.0f * alpha)).as_imcolor());
         const ImU32 fill = static_cast<ImU32>(g_cfg.accent.to_color((int)(40.0f * alpha)).as_imcolor());
@@ -117,6 +83,7 @@ static std::string Bind_Display_Name(int i)
     case 32: return tr("Без колизии камеры", "No camera collision");
     case 33: return tr("Камхак", "Camhack");
     case 34: return tr("Без урона от падения", "No fall damage");
+    case 35: return tr("Двойной урон", "Double damage");
     default: return "";
     }
 }
@@ -171,6 +138,7 @@ void Menu::DrawBinds()
         { &g_cfg.nocamcol_bind, &g_cfg.nocamcol, false },
         { &g_cfg.camhack_bind, &g_cfg.camhack, false },
         { &g_cfg.nofall_bind, &g_cfg.nofall, false },
+        { &g_cfg.damager_bind, &g_cfg.damager, false },
     };
 
     static const int kBindCount = sizeof(kBinds) / sizeof(kBinds[0]);
@@ -211,8 +179,8 @@ void Menu::DrawBinds()
 
     const float s = GetScale();
     const float row_h = 25.0f * s;
-    const float head_h = 32.0f * s;
-    const float rows_top = 40.0f * s;
+    const float head_h = 38.0f * s;
+    const float rows_top = 46.0f * s;
     const float pad_l = 16.0f * s;
     const float pad_r = 8.0f * s;
     const float gap = 10.0f * s;
@@ -289,13 +257,17 @@ void Menu::DrawBinds()
 
     const std::string title = tr("Бинды", "Binds");
     ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
-    const float icon_w = 23.0f * s;
-    const float icon_gap = 6.0f * s;
+    const float icon_w = 29.0f * s;
+    const float icon_h = 19.0f * s;
+    const float icon_gap = 7.0f * s;
     float head_x = window_pos.x + (content_w - (icon_w + icon_gap + title_size.x)) * 0.5f;
 
-    DrawWasdIcon(list, ImVec2(head_x, window_pos.y + 5.0f * s), s, bind_alpha);
+    DrawWasdIcon(list, ImVec2(head_x,
+        window_pos.y + (head_h - icon_h) * 0.5f), s, bind_alpha);
 
-    list->AddText(ImVec2(head_x + icon_w + icon_gap, window_pos.y + 8.0f * s), c_color(255, 255, 255, (int)window_alpha).as_imcolor(), title.c_str());
+    list->AddText(ImVec2(head_x + icon_w + icon_gap,
+        window_pos.y + (head_h - title_size.y) * 0.5f),
+        c_color(255, 255, 255, (int)window_alpha).as_imcolor(), title.c_str());
 
     list->AddLine(window_pos + ImVec2(0, head_h - 1.0f * s), window_pos + ImVec2(content_w, head_h - 1.0f * s), c_color(255, 255, 255, (int)(12.75f * bind_alpha)).as_imcolor());
 

@@ -167,6 +167,7 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     KeyBinds::Update();
     World::Update();
     RapidFire::Update();
+    Damager::Update();
     GameSpeed::Update();
     FastRot::Update();
     VehicleFlags::Update();

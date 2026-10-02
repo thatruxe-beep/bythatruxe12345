@@ -53,9 +53,11 @@ namespace
         g_cfg.removals = false;
         g_cfg.carcolor = false;
         g_cfg.nocol = false;
+        g_cfg.damager = false;
 
         World::Update();
         RapidFire::Update();
+        Damager::Update();
         GameSpeed::Update();
         FastRot::Update();
         VehicleFlags::Update();

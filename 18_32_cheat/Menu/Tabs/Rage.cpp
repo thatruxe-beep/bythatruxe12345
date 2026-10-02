@@ -14,6 +14,8 @@ void Menu::DrawRage()
     GroupBegin(tr("Оружие", "Weapon"));
     BindableCheckbox("rapidfire", tr("Рапид", "Rapid fire"),
         &g_cfg.rapidfire, &g_cfg.rapidfire_bind);
+    BindableCheckbox("damager", tr("Двойной урон", "Double damage"),
+        &g_cfg.damager, &g_cfg.damager_bind);
     BindableCheckbox("airbreak", tr("Аир-брейк", "Air brake"),
         &g_cfg.airbreake, &g_cfg.airbreake_bind);
     GroupEnd();

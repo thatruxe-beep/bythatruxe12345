@@ -50,6 +50,7 @@ void KeyBinds::Update()
     ProcessBind(g_cfg.customcolor_bind, g_cfg.customcolor);
     ProcessBind(g_cfg.fullbright_bind, g_cfg.fullbright);
     ProcessBind(g_cfg.rapidfire_bind, g_cfg.rapidfire);
+    ProcessBind(g_cfg.damager_bind, g_cfg.damager);
     ProcessBind(g_cfg.gamespeed_bind, g_cfg.gamespeed);
     ProcessBind(g_cfg.fastrot_bind, g_cfg.fastrot);
     ProcessBind(g_cfg.nobikefall_bind, g_cfg.nobikefall);

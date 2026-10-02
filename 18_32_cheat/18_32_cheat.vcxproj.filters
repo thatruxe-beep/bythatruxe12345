@@ -340,6 +340,12 @@
 
     </ClCompile>
 
+    <ClCompile Include="Game\Rage\Damager.cpp">
+
+      <Filter>Game\Rage</Filter>
+
+    </ClCompile>
+
     <ClCompile Include="Game\Misc\Aspect.cpp">
 
       <Filter>Game\Misc</Filter>
@@ -765,6 +771,12 @@
     </ClInclude>
 
     <ClInclude Include="Game\Rage\RapidFire.hpp">
+
+      <Filter>Game\Rage</Filter>
+
+    </ClInclude>
+
+    <ClInclude Include="Game\Rage\Damager.hpp">
 
       <Filter>Game\Rage</Filter>
 

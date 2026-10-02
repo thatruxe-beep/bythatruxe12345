@@ -30,8 +30,26 @@ namespace
             return false;
         }
 
+        if (!std::isfinite(projected.x) || !std::isfinite(projected.y))
+        {
+            return false;
+        }
+
+        const ImVec2 display = ImGui::GetIO().DisplaySize;
+        if (projected.x < -display.x || projected.x > display.x * 2.0f
+            || projected.y < -display.y || projected.y > display.y * 2.0f)
+        {
+            return false;
+        }
+
         screen = ImVec2(projected.x, projected.y);
         return true;
+    }
+
+    bool IsInside(const ImVec2& point, const ImVec2& min, const ImVec2& max)
+    {
+        return point.x >= min.x && point.x <= max.x
+            && point.y >= min.y && point.y <= max.y;
     }
 
     void DrawOutlinedLine(ImDrawList* draw, const ImVec2& from, const ImVec2& to,
@@ -157,13 +175,16 @@ void Esp::Update()
         }
 
         const float boxHeight = feetScreen.y - headScreen.y;
-        if (boxHeight < 4.0f)
+        const float centerX = (headScreen.x + feetScreen.x) * 0.5f;
+        if (!std::isfinite(boxHeight) || !std::isfinite(centerX)
+            || boxHeight < 4.0f || boxHeight > displaySize.y * 0.85f
+            || centerX < -displaySize.x * 0.25f
+            || centerX > displaySize.x * 1.25f)
         {
             continue;
         }
 
         const float boxWidth = boxHeight * 0.46f;
-        const float centerX = (headScreen.x + feetScreen.x) * 0.5f;
         const ImVec2 boxMin(centerX - boxWidth * 0.5f, headScreen.y);
         const ImVec2 boxMax(centerX + boxWidth * 0.5f, feetScreen.y);
 
@@ -256,7 +277,24 @@ void Esp::Update()
                 if (WorldToScreen(firstWorld, firstScreen)
                     && WorldToScreen(secondWorld, secondScreen))
                 {
-                    DrawOutlinedLine(draw, firstScreen, secondScreen, skeletonColor, 1.0f);
+                    const ImVec2 skeletonMin(
+                        boxMin.x - boxWidth * 0.75f,
+                        boxMin.y - boxHeight * 0.20f);
+                    const ImVec2 skeletonMax(
+                        boxMax.x + boxWidth * 0.75f,
+                        boxMax.y + boxHeight * 0.20f);
+                    const float dx = secondScreen.x - firstScreen.x;
+                    const float dy = secondScreen.y - firstScreen.y;
+                    const float segmentLengthSq = dx * dx + dy * dy;
+
+                    // Invalid streamed bone matrices can project to enormous
+                    // coordinates and used to create lines across the screen.
+                    if (IsInside(firstScreen, skeletonMin, skeletonMax)
+                        && IsInside(secondScreen, skeletonMin, skeletonMax)
+                        && segmentLengthSq <= boxHeight * boxHeight * 0.64f)
+                    {
+                        DrawOutlinedLine(draw, firstScreen, secondScreen, skeletonColor, 1.0f);
+                    }
                 }
             }
         }

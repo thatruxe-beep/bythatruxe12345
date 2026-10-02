@@ -30,6 +30,7 @@
 #include "Game/Common.hpp"
 
 #include "Game/Rage/RapidFire.hpp"
+#include "Game/Rage/Damager.hpp"
 #include "Game/Legit/FastCrosshair.hpp"
 #include "Game/Rage/NoRecoil.hpp"
 #include "Game/Legit/NoSpread.hpp"
