@@ -25,7 +25,7 @@ namespace license
     constexpr uint8_t kKeyVersionV2 = 2;
     constexpr size_t kMaxRecords = 64; // максимум активированных ключей в истории
 
-    const char* Base32Alphabet()
+    inline const char* Base32Alphabet()
     {
         return "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     }
