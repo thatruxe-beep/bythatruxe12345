@@ -19,9 +19,9 @@ void Fonts::InitStyle()
     ImGuiStyle& style = ImGui::GetStyle();
     style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.85f, 0.85f, 0.85f, 0.85f);
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.03f, 0.06f, 0.09f, 0.98f);
-    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.03f, 0.06f, 0.09f, 0.00f);
-    style.Colors[ImGuiCol_Border] = ImVec4(0.09f, 0.25f, 0.32f, 1.00f);
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.98f);
+    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.00f);
+    style.Colors[ImGuiCol_Border] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
     style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     style.Colors[ImGuiCol_FrameBg] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
     style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(1.00f, 0.30f, 0.10f, 0.50f);

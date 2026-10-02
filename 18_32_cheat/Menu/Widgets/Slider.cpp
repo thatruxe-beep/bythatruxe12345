@@ -102,7 +102,7 @@ bool Menu::SliderScalar(const char* label, ImGuiDataType data_type, void* data, 
     }
 
     float back_alpha = (205 + (25 * mod_frame.hovered_alpha)) * alpha;
-    c_color back_clr = c_color(13, 29, 40).increase((int)(38 * mod_frame.hovered_alpha)).new_alpha((int)back_alpha);
+    c_color back_clr = c_color(41, 41, 41).increase((int)(38 * mod_frame.hovered_alpha)).new_alpha((int)back_alpha);
     draw_list->AddRectFilled(frame_bb.Min, frame_bb.Max, back_clr.as_imcolor(), 4.0f * s);
 
     ImRect render_bounds = ImRect(slider_bounds.Min + ImVec2(0.0f, 9.0f * s), slider_bounds.Max - ImVec2(0.0f, 9.0f * s));

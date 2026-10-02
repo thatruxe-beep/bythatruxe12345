@@ -167,15 +167,25 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         ScreenToClient(hGameWindow, &p);
         ImDrawList* cursorList = ImGui::GetForegroundDrawList();
         const float cursorScale = g_cfg.ui_scale / 100.0f;
-        const ImVec2 center((float)p.x, (float)p.y);
-        const ImU32 accent = g_cfg.accent.to_color().as_imcolor();
-        cursorList->AddCircleFilled(center + ImVec2(2.0f, 2.0f), 7.0f * cursorScale, IM_COL32(0, 0, 0, 125), 20);
-        cursorList->AddCircle(center, 6.0f * cursorScale, accent, 20, 1.8f * cursorScale);
-        cursorList->AddCircleFilled(center, 1.8f * cursorScale, IM_COL32(235, 250, 255, 255), 12);
-        cursorList->AddLine(center + ImVec2(-11.0f * cursorScale, 0), center + ImVec2(-7.5f * cursorScale, 0), accent, 1.5f * cursorScale);
-        cursorList->AddLine(center + ImVec2(7.5f * cursorScale, 0), center + ImVec2(11.0f * cursorScale, 0), accent, 1.5f * cursorScale);
-        cursorList->AddLine(center + ImVec2(0, -11.0f * cursorScale), center + ImVec2(0, -7.5f * cursorScale), accent, 1.5f * cursorScale);
-        cursorList->AddLine(center + ImVec2(0, 7.5f * cursorScale), center + ImVec2(0, 11.0f * cursorScale), accent, 1.5f * cursorScale);
+        const ImVec2 origin((float)p.x, (float)p.y);
+        const ImU32 accent = g_cfg.accent.to_color().u32();
+        ImVec2 cursorShape[] = {
+            origin,
+            origin + ImVec2(2.8f, 18.0f) * cursorScale,
+            origin + ImVec2(7.0f, 13.8f) * cursorScale,
+            origin + ImVec2(11.2f, 22.0f) * cursorScale,
+            origin + ImVec2(15.0f, 20.0f) * cursorScale,
+            origin + ImVec2(10.8f, 12.0f) * cursorScale,
+            origin + ImVec2(17.0f, 10.0f) * cursorScale
+        };
+        ImVec2 cursorShadow[7];
+        for (int i = 0; i < 7; ++i)
+        {
+            cursorShadow[i] = cursorShape[i] + ImVec2(2.0f, 2.0f) * cursorScale;
+        }
+        cursorList->AddConvexPolyFilled(cursorShadow, 7, IM_COL32(0, 0, 0, 150));
+        cursorList->AddConvexPolyFilled(cursorShape, 7, IM_COL32(25, 25, 25, 255));
+        cursorList->AddPolyline(cursorShape, 7, accent, true, 1.7f * cursorScale);
     }
 
     ImGui::EndFrame();
