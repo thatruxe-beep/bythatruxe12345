@@ -14,7 +14,9 @@
 #include "Gfx/Blur.hpp"
 #include "Gfx/Fonts.hpp"
 #include "Menu/Menu.hpp"
+#include "Menu/Auth.hpp"
 #include "Core/Config.hpp"
+#include "Core/License.hpp"
 #include "Core/Runtime.hpp"
 #include "Game/Features.h"
 
@@ -58,14 +60,17 @@ LRESULT WINAPI WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM l
     WndProcCallGuard callGuard;
     WNDPROC original = oWndProc;
     const bool shuttingDown = InterlockedCompareExchange(&sShuttingDown, 0, 0) != 0;
-    const bool is_open = !shuttingDown && (menu && menu->GetState());
+    // Окно активации перехватывает ввод так же, как открытое меню.
+    const bool auth_active = !shuttingDown && License::NeedsInputOverlay();
+    const bool is_open = !shuttingDown && !auth_active && (menu && menu->GetState());
+    const bool wants_input = auth_active || is_open;
 
-    if (is_open && ImGui::GetCurrentContext())
+    if (wants_input && ImGui::GetCurrentContext())
     {
         ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam);
     }
 
-    if (is_open)
+    if (wants_input)
     {
         if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST)
             || (message >= WM_KEYFIRST && message <= WM_KEYLAST)
@@ -163,6 +168,25 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     ImGui::GetIO().FontGlobalScale = g_cfg.ui_scale / 100.0f;
+
+    // Периодическая проверка срока (истёкший ключ отключает функции).
+    License::Tick();
+
+    if (!License::Authorized())
+    {
+        // До активации лицензии ни одна функция чита не работает:
+        // рисуем окно ввода ключа вместо меню.
+        Auth::Draw();
+        License::EnforceExit();
+
+        // Пусть ImGui сам показывает системный курсор-стрелку.
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+
+        ImGui::EndFrame();
+        ImGui::Render();
+        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+        return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
+    }
 
     KeyBinds::Update();
     World::Update();

@@ -3,6 +3,7 @@
 #include "Game/Features.h"
 #include "Hooks/d3d9/Present.hpp"
 
+#include "Core/License.hpp"
 #include "Gfx/Fonts.hpp"
 
 #include <shellapi.h>
@@ -146,6 +147,38 @@ void Menu::DrawProfile()
             if (Combo(tr("Язык", "Language"), &g_cfg.language, lang_items, 2))
             {
                 SaveGeneralConfig();
+            }
+            GroupEnd();
+
+            GroupBegin(tr("Лицензия", "License"));
+            {
+                char keyText[48] = {};
+                char remainingText[32] = {};
+                char expiryText[40] = {};
+                License::FormattedKey(keyText, sizeof(keyText));
+                License::FormatRemaining(remainingText, sizeof(remainingText));
+                License::FormatExpiry(expiryText, sizeof(expiryText));
+
+                ImGui::PushFont(g_fonts.main);
+                ImGui::TextDisabled("%s", tr("Ключ", "Key"));
+                ImGui::SameLine(150.0f * s);
+                ImGui::TextUnformatted(keyText);
+                ImGui::TextDisabled("%s", tr("Осталось", "Remaining"));
+                ImGui::SameLine(150.0f * s);
+                if (License::Authorized())
+                {
+                    ImGui::TextUnformatted(remainingText);
+                }
+                else
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.35f, 0.35f, 1.0f));
+                    ImGui::TextUnformatted(tr("истёк", "expired"));
+                    ImGui::PopStyleColor();
+                }
+                ImGui::TextDisabled("%s", tr("Действует до", "Valid until"));
+                ImGui::SameLine(150.0f * s);
+                ImGui::TextUnformatted(expiryText[0] != '\0' ? expiryText : "-");
+                ImGui::PopFont();
             }
             GroupEnd();
         }
