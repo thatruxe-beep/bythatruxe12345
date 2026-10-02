@@ -491,11 +491,7 @@
 
   <Target Name="PreparePluginSdk" BeforeTargets="ClCompile" Condition="!Exists('$(PluginSdkDir)\output\lib\Plugin.lib')">
     <Message Text="Preparing Plugin-SDK in $(PluginSdkDir)..." Importance="high" />
-    <MakeDir Directories="$(MSBuildProjectDirectory)\..\.deps" />
-    <Exec Condition="!Exists('$(PluginSdkDir)\shared\plugin.h')" Command="git clone https://github.com/DK22Pac/plugin-sdk.git &quot;$(PluginSdkDir)&quot;" />
-    <Exec Command="git -C &quot;$(PluginSdkDir)&quot; checkout 5da18b6f1956bb20bdfa39dcb07c44863ce26c81" />
-    <Exec Command="&quot;$(PluginSdkDir)\tools\premake\premake5.exe&quot; vs2022 --pluginsdkdir=&quot;$(PluginSdkDir)&quot; --file=&quot;$(PluginSdkDir)\tools\premake\premake5.lua&quot;" />
-    <Exec Command="&quot;$(MSBuildBinPath)\MSBuild.exe&quot; &quot;$(PluginSdkDir)\plugin.sln&quot; /m /t:Plugin_SA /p:Configuration=Release /p:Platform=&quot;Mixed Platforms&quot;" />
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\tools\prepare-plugin-sdk.ps1&quot; -SdkDir &quot;$(PluginSdkDir)&quot; -MsBuildPath &quot;$(MSBuildBinPath)\MSBuild.exe&quot;" />
     <Error Condition="!Exists('$(PluginSdkDir)\output\lib\Plugin.lib')" Text="Plugin-SDK build did not produce Plugin.lib" />
   </Target>
 
