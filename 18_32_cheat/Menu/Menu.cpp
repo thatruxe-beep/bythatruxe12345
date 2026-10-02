@@ -368,11 +368,8 @@ void Menu::DrawTabs()
         tr("Рейдж", "Rage"), tr("Легит", "Legit"), tr("Визуалы", "Visuals"),
         tr("Разное", "Misc"), tr("Профиль", "Profile")
     };
-    const float rows[5] = { 91.0f, 127.0f, 191.0f, 255.0f, 291.0f };
-
-    list->AddText(base + ImVec2(13.0f * s, 72.0f * s), IM_COL32(105, 105, 105, (int)(255 * a)), tr("БОЙ", "COMBAT"));
-    list->AddText(base + ImVec2(13.0f * s, 172.0f * s), IM_COL32(105, 105, 105, (int)(255 * a)), tr("МИР", "WORLD"));
-    list->AddText(base + ImVec2(13.0f * s, 236.0f * s), IM_COL32(105, 105, 105, (int)(255 * a)), tr("СИСТЕМА", "SYSTEM"));
+    // Keep the original five menu categories and their familiar order.
+    const float rows[5] = { 78.0f, 116.0f, 154.0f, 192.0f, 230.0f };
 
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));

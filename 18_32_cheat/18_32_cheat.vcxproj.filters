@@ -286,12 +286,6 @@
 
     </ClCompile>
 
-    <ClCompile Include="Game\Misc\Heal.cpp">
-
-      <Filter>Game\Misc</Filter>
-
-    </ClCompile>
-
     <ClCompile Include="Game\Misc\SpeedHack.cpp">
 
       <Filter>Game\Misc</Filter>
@@ -719,12 +713,6 @@
     <ClInclude Include="Game\Rage\GodMode.hpp">
 
       <Filter>Game\Rage</Filter>
-
-    </ClInclude>
-
-    <ClInclude Include="Game\Misc\Heal.hpp">
-
-      <Filter>Game\Misc</Filter>
 
     </ClInclude>
 

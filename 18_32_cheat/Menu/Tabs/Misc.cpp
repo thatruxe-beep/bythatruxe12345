@@ -26,10 +26,6 @@ void Menu::DrawMisc()
         GroupBegin(tr("Игрок", "Player"));
         BindableCheckbox("nofall", tr("Без урона от падения", "No fall damage"),
             &g_cfg.nofall, &g_cfg.nofall_bind);
-        if (Button(tr("Восстановить здоровье", "Heal HP")))
-        {
-            Heal::Update();
-        }
         GroupEnd();
     }
     else if (subtab == 1)

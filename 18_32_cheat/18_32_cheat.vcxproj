@@ -215,7 +215,6 @@
     <ClCompile Include="Game\Misc\GameSpeed.cpp" />
 
     <ClCompile Include="Game\Rage\GodMode.cpp" />
-    <ClCompile Include="Game\Misc\Heal.cpp" />
     <ClCompile Include="Game\Misc\SpeedHack.cpp" />
 
     <ClCompile Include="Game\Misc\NoBikeFall.cpp" />
@@ -385,7 +384,6 @@
     <ClInclude Include="Game\Misc\GameSpeed.hpp" />
 
     <ClInclude Include="Game\Rage\GodMode.hpp" />
-    <ClInclude Include="Game\Misc\Heal.hpp" />
     <ClInclude Include="Game\Misc\SpeedHack.hpp" />
 
     <ClInclude Include="Game\Misc\NoBikeFall.hpp" />

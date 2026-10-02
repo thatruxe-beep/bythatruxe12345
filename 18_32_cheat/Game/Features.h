@@ -45,7 +45,6 @@
 #include "Game/Visuals/World.hpp"
 
 #include "Game/Rage/GodMode.hpp"
-#include "Game/Misc/Heal.hpp"
 #include "Game/Misc/NoFall.hpp"
 #include "Game/Misc/FastRun.hpp"
 #include "Game/Misc/Skin.hpp"
