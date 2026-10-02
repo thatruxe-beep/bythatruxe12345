@@ -333,6 +333,8 @@ void Menu::DrawBackground()
     const int alpha8 = (int)(255.0f * a);
     const ImVec2 pos = GetWindowPos();
     const ImVec2 size(900.0f * s, 535.0f * s);
+    const ImU32 brandTint = static_cast<ImU32>(
+        g_cfg.accent.to_color(alpha8).as_imcolor());
     // Layout and palette follow menu #8 (menu phobia): 161px rail, 838x535 shell.
     list->AddRectFilled(pos + ImVec2(5.0f * s, 7.0f * s), pos + size + ImVec2(8.0f * s, 10.0f * s),
         IM_COL32(0, 0, 0, (int)(105.0f * a)), 12.0f * s);
@@ -345,18 +347,18 @@ void Menu::DrawBackground()
     list->AddRect(pos + ImVec2(160.0f * s, 0), pos + size, IM_COL32(50, 50, 50, alpha8),
         10.0f * s, ImDrawCornerFlags_Right, 1.0f * s);
 
-    // User-provided artwork is rendered without accent tint so its original colors stay intact.
+    // Grayscale copies preserve detail while the draw tint follows the live accent color.
     if (brand_logo_texture)
     {
         list->AddImageRounded((void*)brand_logo_texture,
             pos + ImVec2(19.0f * s, 8.0f * s), pos + ImVec2(142.0f * s, 131.0f * s),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha8), 7.0f * s);
+            ImVec2(0, 0), ImVec2(1, 1), brandTint, 7.0f * s);
     }
     if (brand_banner_texture)
     {
         list->AddImageRounded((void*)brand_banner_texture,
             pos + ImVec2(161.0f * s, 0), pos + ImVec2(900.0f * s, 168.0f * s),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha8),
+            ImVec2(0, 0), ImVec2(1, 1), brandTint,
             10.0f * s, ImDrawCornerFlags_TopRight);
         list->AddRect(pos + ImVec2(160.0f * s, 0), pos + ImVec2(900.0f * s, 168.0f * s),
             IM_COL32(50, 50, 50, alpha8), 10.0f * s, ImDrawCornerFlags_TopRight);
@@ -399,7 +401,7 @@ void Menu::DrawTabs()
         tr("Рейдж", "Rage"), tr("Легит", "Legit"), tr("Визуалы", "Visuals"),
         tr("Разное", "Misc"), tr("Профиль", "Profile")
     };
-    const float rows[5] = { 145.0f, 183.0f, 221.0f, 259.0f, 297.0f };
+    const float rows[5] = { 145.0f, 183.0f, 221.0f, 259.0f, 480.0f };
 
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));

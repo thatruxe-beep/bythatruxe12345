@@ -15,6 +15,7 @@
 #include "Gfx/Fonts.hpp"
 #include "Menu/Menu.hpp"
 #include "Core/Config.hpp"
+#include "Core/Runtime.hpp"
 #include "Game/Features.h"
 
 #include "Present.hpp"
@@ -32,6 +33,7 @@ static HWND hGameWindow = nullptr;
 static volatile LONG sPresentCalls = 0;
 static volatile LONG sWndProcCalls = 0;
 static volatile LONG sShuttingDown = 0;
+static volatile LONG sUnloadRequested = 0;
 
 namespace
 {
@@ -137,6 +139,20 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
     }
 
+    // Finish the frame in which the button was clicked, then perform all MTA
+    // cursor and USER32 work here at the start of the next render frame.
+    if (InterlockedExchange(&sUnloadRequested, 0) != 0)
+    {
+        g_cfg.menu_open = false;
+        if (Cself && callForceCursorVisible)
+        {
+            callForceCursorVisible(Cself, false, false);
+        }
+        RestoreWindowProcedure();
+        Runtime::RequestUnload();
+        return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
+    }
+
     if (!imgui_initialized)
     {
         InitImGui(self);
@@ -221,9 +237,15 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
 }
 
+void Present::RequestUnload()
+{
+    InterlockedExchange(&sUnloadRequested, 1);
+}
+
 void Present::InstallHook()
 {
     MH_STATUS status;
+    InterlockedExchange(&sUnloadRequested, 0);
 
     sPresentTarget = Utils::get_function_address(17);
 
