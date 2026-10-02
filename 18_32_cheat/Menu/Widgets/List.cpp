@@ -47,7 +47,7 @@ bool Menu::Listbox(const char* label, int* current, const char* const items[], i
 
     ImVec2 box_min = pos + ImVec2(0, label_size.x > 0.0f ? 22.0f * s : 0);
     ImVec2 box_max = box_min + box_size;
-    draw_list->AddRectFilled(box_min, box_max, c_color(217, 217, 217).new_alpha(20 * alpha).as_imcolor(), 4.f * s);
+    draw_list->AddRectFilled(box_min, box_max, c_color(41, 41, 41).new_alpha((int)(200 * alpha)).as_imcolor(), 4.f * s);
     draw_list->AddRect(box_min, box_max, c_color(0, 0, 0, 80 * alpha).as_imcolor(), 4.f * s);
 
     bool changed = false;
@@ -190,8 +190,8 @@ bool Menu::ListboxSelectable(const char* label, bool selected, float alpha_pass,
     if (alpha_pass > 0.0f)
     {
         float text_clr = selected ? 1.0f : 0.58f + 0.42f * mod.hovered_alpha;
-        float back_alpha = (20 + (30 * mod.hovered_alpha) + (50 * (hovered && held))) * alpha;
-        c_color back_clr = c_color(217, 217, 217).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
+        float back_alpha = (205 + (20 * mod.hovered_alpha) + (20 * (hovered && held))) * alpha;
+        c_color back_clr = c_color(41, 41, 41).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
 
         window->DrawList->AddRectFilled(bb.Min, bb.Max - ImVec2(0.0f, 4.0f * s), back_clr.as_imcolor(), 4.0f * s);
 
@@ -235,8 +235,8 @@ bool Menu::ListBoxHeader(const char* label, const ImVec2& size_arg)
 
     BeginGroup();
 
-    float back_alpha = 20 * alpha;
-    c_color back_clr = c_color(217, 217, 217).new_alpha((int)back_alpha);
+    float back_alpha = 200 * alpha;
+    c_color back_clr = c_color(41, 41, 41).new_alpha((int)back_alpha);
 
     PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
     PushStyleColor(ImGuiCol_ChildBg, back_clr.as_imvec4());

@@ -565,8 +565,8 @@ bool Menu::ColorButtonWrapper(const char* desc_id, const ImVec4& col, ImGuiColor
     item_animation_t& mod = item_animations[Hash_Label(desc_id) + Hash_Label("color")];
     CreateAnimation(mod.hovered_alpha, hovered_frame, 1.0f, AnimLerp);
 
-    float back_alpha = (20 + (30 * mod.hovered_alpha)) * alpha;
-    c_color back_clr = c_color(217, 217, 217).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
+    float back_alpha = (205 + (25 * mod.hovered_alpha)) * alpha;
+    c_color back_clr = c_color(41, 41, 41).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
     draw_list->AddRectFilled(pos, pos + back_size, back_clr.as_imcolor(), 4.0f * s);
 
     if (flags & ImGuiColorEditFlags_NoAlpha)

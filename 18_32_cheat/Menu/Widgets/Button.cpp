@@ -51,8 +51,8 @@ bool Menu::Button(const char* label)
     item_animation_t& mod = item_animations[Hash_Label(label) + Hash_Label("btn")];
     CreateAnimation(mod.hovered_alpha, hovered, 1.0f, AnimLerp);
 
-    float back_alpha = (20 + 30 * mod.hovered_alpha + 50 * (hovered && held)) * alpha;
-    c_color back_clr = c_color(217, 217, 217).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
+    float back_alpha = (205 + 20 * mod.hovered_alpha + 20 * (hovered && held)) * alpha;
+    c_color back_clr = c_color(41, 41, 41).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
     draw_list->AddRectFilled(rect.Min, rect.Max, back_clr.as_imcolor(), 4.0f * s);
     RenderTextClipped(rect.Min, rect.Max, label, NULL, &label_size, style.ButtonTextAlign, &bb);
     PopStyleColor();

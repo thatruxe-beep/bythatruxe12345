@@ -240,7 +240,8 @@ void Menu::ReleaseTextures()
 void Menu::WindowBegin()
 {
     const float s = GetScale();
-    ImVec2 window_size = ImVec2(800.0f * s, 550.0f * s);
+    // Keep a transparent interaction margin around the 838x535 Phobia-style panel.
+    ImVec2 window_size = ImVec2(928.0f * s, 565.0f * s);
     ImGui::SetNextWindowSize(window_size, ImGuiCond_Always);
 
     static int centered_scale = 0;
@@ -271,8 +272,8 @@ void Menu::WindowBegin()
     list->Flags |= ImDrawListFlags_AntiAliasedFill | ImDrawListFlags_AntiAliasedLines;
 
     ImVec2 wp = GetWindowPos();
-    list->PushClipRect(wp, ImVec2(wp.x + 720.0f * s, wp.y + 520.0f * s));
-    ImGui::PushClipRect(wp, ImVec2(wp.x + 720.0f * s, wp.y + 520.0f * s), false);
+    list->PushClipRect(wp, ImVec2(wp.x + 838.0f * s, wp.y + 535.0f * s));
+    ImGui::PushClipRect(wp, ImVec2(wp.x + 838.0f * s, wp.y + 535.0f * s), false);
 }
 
 void Menu::WindowEnd()
@@ -293,59 +294,60 @@ void Menu::DrawBackground()
 {
     const float s = GetScale();
     ImDrawList* list = draw_list;
-    float alpha = GetAlpha();
-    float window_alpha = 255.0f * GetAlpha();
-    ImVec2 window_pos = GetWindowPos();
-    ImVec2 header_size = ImVec2(720.0f * s, 47.0f * s);
-    Blur::Create(list, window_pos, ImVec2(window_pos.x + header_size.x, window_pos.y + header_size.y), c_color(255, 255, 255, window_alpha).as_imcolor(), 6.0f * s, ImDrawCornerFlags_Top);
+    const float a = GetAlpha();
+    const int alpha8 = (int)(255.0f * a);
+    const ImVec2 pos = GetWindowPos();
+    const ImVec2 size(838.0f * s, 535.0f * s);
+    const float side = 160.0f * s;
+    const c_color accent = g_cfg.accent.to_color();
 
-    ImVec2 image_size = ImVec2(14.0f * s, 14.0f * s);
-    ImVec2 image_pos_min = ImVec2((header_size.x / 2) - (image_size.x - 2.0f * s), (header_size.y / 2) - (image_size.y - 2.0f * s));
-    ImVec2 image_pos_max = ImVec2((header_size.x / 2) + (image_size.x - 2.0f * s), (header_size.y / 2) + (image_size.y - 2.0f * s));
-    c_color clr = g_cfg.accent.to_color();
+    // Phobia-inspired shell: charcoal navigation rail and a darker workspace.
+    list->AddRectFilled(pos + ImVec2(4.0f * s, 5.0f * s), pos + size + ImVec2(7.0f * s, 8.0f * s),
+        IM_COL32(0, 0, 0, (int)(95.0f * a)), 12.0f * s);
+    list->AddRectFilled(pos, pos + ImVec2(side, size.y), IM_COL32(32, 32, 32, alpha8),
+        10.0f * s, ImDrawCornerFlags_Left);
+    list->AddRectFilled(pos + ImVec2(side - 1.0f * s, 0), pos + size, IM_COL32(26, 26, 26, alpha8),
+        10.0f * s, ImDrawCornerFlags_Right);
+    list->AddLine(pos + ImVec2(side, 0), pos + ImVec2(side, size.y), IM_COL32(50, 50, 50, alpha8));
+    list->AddRect(pos, pos + size, IM_COL32(50, 50, 50, alpha8), 10.0f * s, 0, 1.0f * s);
 
-    static const std::string letter_s =
-#ifdef BETA_BUILD
-        "18:32 cheat (beta)";
-#else
-        "18:32 cheat";
-#endif
-    const char* letter = letter_s.c_str();
+    // Compact text logo, matching menu #8's logo block without external assets.
+    list->AddRectFilled(pos + ImVec2(16.0f * s, 18.0f * s), pos + ImVec2(45.0f * s, 47.0f * s),
+        accent.new_alpha(alpha8).as_imcolor(), 7.0f * s);
+    list->AddText(g_fonts.dmg, 18.0f * s, pos + ImVec2(22.0f * s, 23.0f * s),
+        IM_COL32(255, 255, 255, alpha8), "18");
+    list->AddText(g_fonts.dmg, 18.0f * s, pos + ImVec2(53.0f * s, 17.0f * s),
+        IM_COL32(245, 245, 245, alpha8), "18:32");
+    list->AddText(pos + ImVec2(54.0f * s, 37.0f * s), IM_COL32(105, 105, 105, alpha8), "CHEAT");
+    list->AddLine(pos + ImVec2(12.0f * s, 61.0f * s), pos + ImVec2(148.0f * s, 61.0f * s),
+        IM_COL32(50, 50, 50, alpha8));
 
-    ImGui::PushFont(g_fonts.dmg);
-    ImVec2 text_size = ImGui::CalcTextSize(letter);
-
-    if (logo_texture)
-    {
-        list->AddImage((void*)logo_texture, window_pos + image_pos_min - ImVec2(text_size.x - 18.0f * s, 0.0f), window_pos + image_pos_max - ImVec2(text_size.x - 18.0f * s, 0.0f), ImVec2(0, 0), ImVec2(1, 1), clr.new_alpha(window_alpha).as_imcolor());
-    }
-
-    float base_x = window_pos.x + image_pos_min.x - text_size.x + 18.0f * s;
-    list->AddText(ImVec2(base_x + 30.0f * s, window_pos.y + 13.0f * s), c_color(255, 255, 255, 150.0f * alpha).as_imcolor(), letter);
-    ImGui::PopFont();
-
-    Blur::Create(list, window_pos + ImVec2(0, 47.0f * s), ImVec2(window_pos.x + 720.0f * s, window_pos.y + 520.0f * s), ImColor(80, 80, 80, (int)(window_alpha)), 6.0f * s, ImDrawCornerFlags_Bot);
-    list->AddLine(window_pos + ImVec2(0, 46.0f * s), window_pos + ImVec2(720.0f * s, 46.0f * s), c_color(255, 255, 255, 12.75f * alpha).as_imcolor());
-    list->AddLine(window_pos + ImVec2(160.0f * s, 47.0f * s), window_pos + ImVec2(160.0f * s, 520.0f * s), c_color(255, 255, 255, 12.75f * alpha).as_imcolor(), 1.0f * s);
-    list->AddRect(window_pos, ImVec2(window_pos.x + 720.0f * s, window_pos.y + 520.0f * s), c_color(100, 100, 100, 100.0f * alpha).as_imcolor(), 6.0f * s);
+    // User/status card at the bottom of the navigation rail.
+    const ImVec2 cardMin = pos + ImVec2(9.0f * s, 487.0f * s);
+    const ImVec2 cardMax = pos + ImVec2(151.0f * s, 525.0f * s);
+    list->AddRectFilled(cardMin, cardMax, IM_COL32(41, 41, 41, alpha8), 5.0f * s);
+    list->AddRect(cardMin, cardMax, IM_COL32(50, 50, 50, alpha8), 5.0f * s);
+    list->AddCircleFilled(cardMin + ImVec2(19.0f * s, 19.0f * s), 11.0f * s,
+        accent.new_alpha(alpha8).as_imcolor());
+    list->AddText(cardMin + ImVec2(38.0f * s, 6.0f * s), IM_COL32(235, 235, 235, alpha8), "18:32 user");
+    list->AddText(cardMin + ImVec2(38.0f * s, 21.0f * s), IM_COL32(105, 105, 105, alpha8), "lifetime");
 
     ImGuiIO& io = ImGui::GetIO();
-    ImVec2 header_max = ImVec2(window_pos.x + header_size.x, window_pos.y + header_size.y);
-
-    if (!s_dragging && ImGui::IsMouseHoveringRect(window_pos, header_max) && ImGui::IsMouseClicked(0))
+    const ImVec2 dragMax = pos + ImVec2(838.0f * s, 66.0f * s);
+    if (!s_dragging && ImGui::IsMouseHoveringRect(pos, dragMax) && ImGui::IsMouseClicked(0))
     {
         s_dragging = true;
-        s_drag_offset = ImVec2(io.MousePos.x - window_pos.x, io.MousePos.y - window_pos.y);
+        s_drag_offset = ImVec2(io.MousePos.x - pos.x, io.MousePos.y - pos.y);
     }
 
     s_drag_pending = false;
-
     if (s_dragging)
     {
         if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
         {
             s_drag_pending = true;
-            s_drag_pending_pos = ImVec2(io.MousePos.x - s_drag_offset.x - 45.0f * s, io.MousePos.y - s_drag_offset.y - 15.0f * s);
+            s_drag_pending_pos = ImVec2(io.MousePos.x - s_drag_offset.x - 45.0f * s,
+                io.MousePos.y - s_drag_offset.y - 15.0f * s);
         }
         else
         {
@@ -357,62 +359,67 @@ void Menu::DrawBackground()
 void Menu::DrawTabs()
 {
     const float s = GetScale();
+    const float a = GetAlpha();
     ImDrawList* list = draw_list;
-    ImVec2 prev = ImGui::GetCursorPos();
-    ImVec2 child_pos = GetWindowPos() + ImVec2(0, 49.0f * s);
+    const ImVec2 savedCursor = ImGui::GetCursorPos();
+    const ImVec2 base = GetWindowPos();
+    const c_color accent = g_cfg.accent.to_color();
+    const std::string names[5] = {
+        tr("Рейдж", "Rage"), tr("Легит", "Legit"), tr("Визуалы", "Visuals"),
+        tr("Разное", "Misc"), tr("Профиль", "Profile")
+    };
+    const float rows[5] = { 91.0f, 127.0f, 191.0f, 255.0f, 291.0f };
+
+    list->AddText(base + ImVec2(13.0f * s, 72.0f * s), IM_COL32(105, 105, 105, (int)(255 * a)), tr("БОЙ", "COMBAT"));
+    list->AddText(base + ImVec2(13.0f * s, 172.0f * s), IM_COL32(105, 105, 105, (int)(255 * a)), tr("МИР", "WORLD"));
+    list->AddText(base + ImVec2(13.0f * s, 236.0f * s), IM_COL32(105, 105, 105, (int)(255 * a)), tr("СИСТЕМА", "SYSTEM"));
+
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, GetAlpha()));
 
-        const std::string names[5] = { tr("Рейдж", "Rage"), tr("Легит", "Legit"), tr("Визуалы", "Visuals"), tr("Разное", "Misc"), tr("Профиль", "Profile") };
-    c_color accent = g_cfg.accent.to_color();
-
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 5; ++i)
     {
         tab_animation_t& info = tab_info[i];
-        ImGui::SetCursorPos(ImVec2(53.0f * s, (78.0f + 40.0f * i) * s));
-
-        std::string id = std::string("##tab_") + std::to_string(i);
-        bool clicked = ImGui::ButtonEx(id.c_str(), ImVec2(144.0f * s, 32.0f * s), 0, &info.hovered);
-
-        if (clicked)
-        {
-            tab_selector = i;
-        }
+        ImGui::SetCursorPos(ImVec2(53.0f * s, (15.0f + rows[i]) * s));
+        const std::string id = "##phobia_tab_" + std::to_string(i);
+        const bool clicked = ImGui::ButtonEx(id.c_str(), ImVec2(144.0f * s, 32.0f * s), 0, &info.hovered);
+        if (clicked) tab_selector = i;
 
         CreateAnimation(info.hovered_alpha, info.hovered, 1.0f, AnimLerp);
         CreateAnimation(info.alpha, tab_selector == i, 0.8f, AnimSkipDisable | AnimLerp);
 
-        ImVec2 tmin = child_pos + ImVec2(8.0f * s, (14.0f + 40.0f * i) * s);
-        ImVec2 tmax = child_pos + ImVec2(152.0f * s, (46.0f + 40.0f * i) * s);
-        float rgb = tab_selector == i ? 255 : 150 + 105 * info.hovered_alpha;
-        c_color text_clr = c_color((int)rgb, (int)rgb, (int)rgb, (int)(rgb * GetAlpha()));
-
+        const ImVec2 tmin = base + ImVec2(8.0f * s, rows[i] * s);
+        const ImVec2 tmax = tmin + ImVec2(144.0f * s, 32.0f * s);
+        if (info.hovered_alpha > 0.01f || info.alpha > 0.01f)
+        {
+            const int bg = (int)((18.0f * info.hovered_alpha + 20.0f * info.alpha) * a);
+            list->AddRectFilled(tmin, tmax, IM_COL32(70, 70, 70, bg), 5.0f * s);
+        }
         if (tab_selector == i)
         {
-            list->AddRectFilled(tmin, tmax - ImVec2(2.0f * s, 0), c_color(255, 255, 255, 10 * info.alpha * GetAlpha()).as_imcolor(), 4.0f * s, ImDrawCornerFlags_Left);
-            list->PushClipRect(tmax - ImVec2(2.0f * s, 32.0f * s), tmax);
-            list->AddRectFilled(tmax - ImVec2(4.0f * s, 32.0f * s), tmax, accent.new_alpha((int)(255 * info.alpha * GetAlpha())).as_imcolor(), 2.0f * s, ImDrawCornerFlags_Right);
-            list->PopClipRect();
+            list->AddRectFilled(tmin, tmin + ImVec2(3.0f * s, 32.0f * s),
+                accent.new_alpha((int)(255 * info.alpha * a)).as_imcolor(), 2.0f * s);
         }
 
-        if (i == 4)
+        const int idle = (int)((145.0f + 110.0f * info.hovered_alpha) * a);
+        const ImU32 tint = tab_selector == i
+            ? IM_COL32(245, 245, 245, (int)(255 * a))
+            : IM_COL32(idle, idle, idle, (int)(255 * a));
+        if (i < 4 && icon_textures[i])
         {
-            ImVec2 ip0 = tmin + ImVec2(10.0f * s, 9.0f * s);
-            list->AddCircleFilled(ip0 + ImVec2(7.5f * s, 4.0f * s), 2.8f * s, text_clr.as_imcolor());
-            list->AddRectFilled(ip0 + ImVec2(3.0f * s, 8.5f * s), ip0 + ImVec2(12.0f * s, 15.0f * s), text_clr.as_imcolor(), 3.0f * s);
+            list->AddImage((void*)icon_textures[i], tmin + ImVec2(11.0f * s, 9.0f * s),
+                tmin + ImVec2(26.0f * s, 24.0f * s), ImVec2(0, 0), ImVec2(1, 1), tint);
         }
-        else if (icon_textures[i])
+        else
         {
-            list->AddImage((void*)icon_textures[i], tmin + ImVec2(10.0f * s, 9.0f * s), tmin + ImVec2(25.0f * s, 24.0f * s), ImVec2(0, 0), ImVec2(1, 1), text_clr.as_imcolor());
+            list->AddCircleFilled(tmin + ImVec2(18.0f * s, 16.0f * s), 5.0f * s, tint);
         }
-
-        list->AddText(ImVec2(tmin.x + 32.0f * s, tmin.y + 8.0f * s), text_clr.as_imcolor(), names[i].c_str());
+        list->AddText(tmin + ImVec2(35.0f * s, 8.0f * s), tint, names[i].c_str());
     }
 
-    ImGui::PopStyleColor(4);
-    ImGui::SetCursorPos(prev);
+    ImGui::PopStyleColor(3);
+    ImGui::SetCursorPos(savedCursor);
 }
 
 void Menu::DrawSubTabs(int& selector, const std::vector<std::string>& tabs)
@@ -427,7 +434,8 @@ void Menu::DrawSubTabs(int& selector, const std::vector<std::string>& tabs)
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, a));
-    draw_list->AddRectFilled(child_pos, child_pos + ImVec2(528.0f * s, 58.0f * s), ImColor(217, 217, 217, (int)(20 * a)), 4.0f * s);
+    draw_list->AddRectFilled(child_pos, child_pos + ImVec2(646.0f * s, 58.0f * s), ImColor(32, 32, 32, (int)(235 * a)), 5.0f * s);
+    draw_list->AddRect(child_pos, child_pos + ImVec2(646.0f * s, 58.0f * s), ImColor(50, 50, 50, (int)(255 * a)), 5.0f * s);
 
     c_color accent = g_cfg.accent.to_color();
 
@@ -455,7 +463,7 @@ void Menu::DrawSubTabs(int& selector, const std::vector<std::string>& tabs)
 
         if (selector == i)
         {
-            draw_list->AddRectFilled(bb.Min, bb.Max, ImColor(217, 217, 217, (int)(20 * a * info.alpha)), 4.0f * s);
+            draw_list->AddRectFilled(bb.Min, bb.Max, ImColor(41, 41, 41, (int)(255 * a * info.alpha)), 4.0f * s);
             draw_list->PushClipRect(ImVec2(bb.Min.x + 15.0f * s, bb.Max.y - 2.0f * s), ImVec2(bb.Max.x - 15.0f * s, bb.Max.y));
             draw_list->AddRectFilled(ImVec2(bb.Min.x + 15.0f * s, bb.Max.y - 2.0f * s), ImVec2(bb.Max.x - 15.0f * s, bb.Max.y + 4.0f * s), accent.new_alpha((int)(info.alpha * wa)).as_imcolor(), 2.0f * s, ImDrawCornerFlags_Top);
             draw_list->PopClipRect();
@@ -472,8 +480,8 @@ void Menu::DrawSubTabs(int& selector, const std::vector<std::string>& tabs)
     ImGui::PopStyleColor(4);
     ImGui::SetCursorPos(prev);
     ImGui::ItemSize(ImVec2(0, 62.0f * s));
-    ImGui::PushClipRect(child_pos + ImVec2(0.0f, 62.0f * s), child_pos + ImVec2(540.0f * s, 457.0f * s), false);
-    draw_list->PushClipRect(child_pos + ImVec2(0.0f, 62.0f * s), child_pos + ImVec2(540.0f * s, 457.0f * s));
+    ImGui::PushClipRect(child_pos + ImVec2(0.0f, 62.0f * s), child_pos + ImVec2(658.0f * s, 472.0f * s), false);
+    draw_list->PushClipRect(child_pos + ImVec2(0.0f, 62.0f * s), child_pos + ImVec2(658.0f * s, 472.0f * s));
 }
 
 void Menu::UpdateSubFade(int tab, int& sub)
@@ -495,10 +503,18 @@ void Menu::UpdateSubFade(int tab, int& sub)
 
 void Menu::GroupBegin(const char* label)
 {
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, GetAlpha()));
+    const float s = GetScale();
+    const float a = GetAlpha();
+    const ImVec2 start = ImGui::GetCursorScreenPos();
+    const c_color accent = g_cfg.accent.to_color();
+    draw_list->AddRectFilled(start + ImVec2(0, 2.0f * s), start + ImVec2(3.0f * s, 15.0f * s),
+        accent.new_alpha((int)(255 * a)).as_imcolor(), 1.5f * s);
+    ImGui::SetCursorScreenPos(start + ImVec2(10.0f * s, 0));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.92f, 0.92f, 0.92f, a));
     ImGui::Text(label);
     ImGui::PopStyleColor();
-    ImGui::ItemSize(ImVec2(0, 1.0f * GetScale()));
+    ImGui::SetCursorScreenPos(ImVec2(start.x, ImGui::GetCursorScreenPos().y));
+    ImGui::ItemSize(ImVec2(0, 3.0f * s));
     ImGui::BeginGroup();
 }
 
@@ -530,7 +546,7 @@ void Menu::DrawContent()
 
     const float s = GetScale();
     ImGui::SetCursorPos(ImVec2(215.0f * s, 77.0f * s));
-    ImRect window_bb = ImRect(window_pos + ImVec2(160.0f * s, 47.0f * s), window_pos + ImVec2(725.0f * s, 520.0f * s));
+    ImRect window_bb = ImRect(window_pos + ImVec2(160.0f * s, 47.0f * s), window_pos + ImVec2(838.0f * s, 535.0f * s));
     ImGui::PushClipRect(window_bb.Min, window_bb.Max, false);
     ImGui::BeginChild("##tab_child", ImVec2(), true);
 

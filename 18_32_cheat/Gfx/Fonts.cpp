@@ -19,8 +19,9 @@ void Fonts::InitStyle()
     ImGuiStyle& style = ImGui::GetStyle();
     style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.85f, 0.85f, 0.85f, 0.85f);
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.15f, 0.15f, 0.15f, 0.70f);
-    style.Colors[ImGuiCol_Border] = ImVec4(0.14f, 0.16f, 0.19f, 0.60f);
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.98f);
+    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.00f);
+    style.Colors[ImGuiCol_Border] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
     style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     style.Colors[ImGuiCol_FrameBg] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
     style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(1.00f, 0.30f, 0.10f, 0.50f);
@@ -53,8 +54,15 @@ void Fonts::InitStyle()
     style.Colors[ImGuiCol_PopupBg] = ImVec4(0.07f, 0.07f, 0.07f, 0.70f);
     style.Alpha = 1.0f;
     style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
+    style.WindowRounding = 10.0f;
+    style.ChildRounding = 5.0f;
+    style.PopupRounding = 5.0f;
+    style.FrameRounding = 5.0f;
+    style.WindowBorderSize = 0.0f;
+    style.ChildBorderSize = 0.0f;
     style.FramePadding = ImVec2(1, 1);
-    style.ScrollbarSize = 10.0f;
-    style.ScrollbarRounding = 0.0f;
+    style.ItemSpacing = ImVec2(8.0f, 6.0f);
+    style.ScrollbarSize = 5.0f;
+    style.ScrollbarRounding = 3.0f;
     style.GrabMinSize = 5.0f;
 }

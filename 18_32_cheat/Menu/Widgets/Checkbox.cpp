@@ -59,8 +59,8 @@ bool Menu::Checkbox(const char* label, bool* value)
     CreateAnimation(mod.alpha, *value, 0.4f, AnimLerp);
 
     ImVec2 back_size = ImVec2(256.0f * s, 32.0f * s);
-    float back_alpha = (20 + (30 * mod.hovered_alpha)) * alpha;
-    c_color back_clr = c_color(217, 217, 217).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
+    float back_alpha = (205 + (25 * mod.hovered_alpha)) * alpha;
+    c_color back_clr = c_color(41, 41, 41).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
     draw_list->AddRectFilled(pos, pos + back_size, back_clr.as_imcolor(), 4.0f * s);
 
     ImVec2 body_size = ImVec2(28.0f * s, 14.0f * s);
@@ -179,8 +179,8 @@ bool Menu::BindableCheckbox(const char* id, const char* label, bool* v, keybind_
                             }
                         }
 
-                        float back_alpha = (20 + (30 * mod.hovered_alpha)) * pop_alpha;
-                        c_color back_clr = c_color(217, 217, 217).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
+                        float back_alpha = (205 + (25 * mod.hovered_alpha)) * pop_alpha;
+                        c_color back_clr = c_color(41, 41, 41).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
                         plist->AddRectFilled(pos, pos + ImVec2(200.0f * s, 30.0f * s), back_clr.as_imcolor(), 4.0f * s);
 
                         PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 0.5f * pop_alpha));
@@ -218,7 +218,7 @@ bool Menu::BindableCheckbox(const char* id, const char* label, bool* v, keybind_
                         CreateAnimation(mod.hovered_alpha, lh || rh, 1.0f, AnimLerp);
 
                         c_color accent = g_cfg.accent.to_color();
-                        c_color off_clr = c_color(217, 217, 217).new_alpha((int)(20 * pop_alpha));
+                        c_color off_clr = c_color(41, 41, 41).new_alpha((int)(200 * pop_alpha));
                         c_color on_clr = accent.new_alpha((int)(200 * pop_alpha));
                         plist->AddRectFilled(left_bb.Min, left_bb.Max, (bind->mode == 0 ? on_clr : off_clr).as_imcolor(), 3.0f * s);
                         plist->AddRectFilled(right_bb.Min, right_bb.Max, (bind->mode == 1 ? on_clr : off_clr).as_imcolor(), 3.0f * s);

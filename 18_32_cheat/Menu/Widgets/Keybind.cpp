@@ -86,8 +86,8 @@ bool Menu::Keybind(const char* label, keybind_t* bind)
         }
     }
 
-    float back_alpha = (20 + (30 * mod.hovered_alpha)) * alpha;
-    c_color back_clr = c_color(217, 217, 217).increase(38 * mod.hovered_alpha).new_alpha(back_alpha);
+    float back_alpha = (205 + (25 * mod.hovered_alpha)) * alpha;
+    c_color back_clr = c_color(41, 41, 41).increase(38 * mod.hovered_alpha).new_alpha(back_alpha);
     draw_list->AddRectFilled(pos, pos + ImVec2(256.0f * s, 32.0f * s), back_clr.as_imcolor(), 4.f * s);
 
     if (label_size.x > 0.0f)
