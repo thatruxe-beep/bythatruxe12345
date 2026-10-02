@@ -111,11 +111,8 @@ void Hooks::RemoveHooks()
 
     RestoreFeatureState();
 
-    if (Cself && callForceCursorVisible)
-    {
-        callForceCursorVisible(Cself, false, false);
-    }
-
+    // The MTA cursor is restored by the unload button on the render thread.
+    // Calling its GUI routine from this worker thread can crash inside USER32.
     Present::Shutdown();
     LdrDll::RemoveHook();
     Collision::RemoveHook();

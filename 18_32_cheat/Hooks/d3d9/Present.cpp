@@ -30,6 +30,8 @@ static WNDPROC oWndProc = nullptr;
 static bool imgui_initialized = false;
 static HWND hGameWindow = nullptr;
 static volatile LONG sPresentCalls = 0;
+static volatile LONG sWndProcCalls = 0;
+static volatile LONG sShuttingDown = 0;
 
 namespace
 {
@@ -38,6 +40,12 @@ namespace
         PresentCallGuard() { InterlockedIncrement(&sPresentCalls); }
         ~PresentCallGuard() { InterlockedDecrement(&sPresentCalls); }
     };
+
+    struct WndProcCallGuard
+    {
+        WndProcCallGuard() { InterlockedIncrement(&sWndProcCalls); }
+        ~WndProcCallGuard() { InterlockedDecrement(&sWndProcCalls); }
+    };
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
@@ -45,7 +53,10 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 LRESULT WINAPI WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    const bool is_open = (menu && menu->GetState());
+    WndProcCallGuard callGuard;
+    WNDPROC original = oWndProc;
+    const bool shuttingDown = InterlockedCompareExchange(&sShuttingDown, 0, 0) != 0;
+    const bool is_open = !shuttingDown && (menu && menu->GetState());
 
     if (is_open && ImGui::GetCurrentContext())
     {
@@ -62,9 +73,30 @@ LRESULT WINAPI WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM l
         }
     }
 
-    return oWndProc
-        ? CallWindowProcW(oWndProc, window, message, wParam, lParam)
+    return original
+        ? CallWindowProcW(original, window, message, wParam, lParam)
         : DefWindowProcW(window, message, wParam, lParam);
+}
+
+static void RestoreWindowProcedure()
+{
+    InterlockedExchange(&sShuttingDown, 1);
+
+    if (hGameWindow && oWndProc)
+    {
+        const auto current = reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hGameWindow, GWLP_WNDPROC));
+        if (current == WndProcHandler)
+        {
+            SetWindowLongPtrW(hGameWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(oWndProc));
+        }
+    }
+
+    // Once the original procedure is restored, no new calls can enter our
+    // handler. Wait for messages already inside it before unloading code.
+    for (int i = 0; i < 2000 && InterlockedCompareExchange(&sWndProcCalls, 0, 0) != 0; ++i)
+    {
+        Sleep(1);
+    }
 }
 
 static void InitImGui(IDirect3DDevice9* device)
@@ -72,6 +104,8 @@ static void InitImGui(IDirect3DDevice9* device)
     D3DDEVICE_CREATION_PARAMETERS deviceParameters;
     device->GetCreationParameters(&deviceParameters);
 
+    InterlockedExchange(&sShuttingDown, 0);
+    InterlockedExchange(&sWndProcCalls, 0);
     oWndProc = (WNDPROC)SetWindowLongPtrW(deviceParameters.hFocusWindow, GWLP_WNDPROC, (LONG_PTR)WndProcHandler);
     hGameWindow = deviceParameters.hFocusWindow;
 
@@ -97,6 +131,11 @@ static void InitImGui(IDirect3DDevice9* device)
 HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, const RECT* destRect, HWND destWindowOverride, const RGNDATA* dirtyRegion)
 {
     PresentCallGuard callGuard;
+
+    if (InterlockedCompareExchange(&sShuttingDown, 0, 0) != 0)
+    {
+        return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
+    }
 
     if (!imgui_initialized)
     {
@@ -213,8 +252,12 @@ void Present::RemoveHook()
 
     if (sPresentTarget == nullptr)
     {
+        RestoreWindowProcedure();
         return;
     }
+
+    // Detach USER32 from DLL code before stopping rendering or destroying ImGui.
+    RestoreWindowProcedure();
 
     status = MH_DisableHook(sPresentTarget);
     if (status != MH_OK)
@@ -243,14 +286,7 @@ void Present::Shutdown()
         return;
     }
 
-    if (hGameWindow && oWndProc)
-    {
-        const auto current = reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hGameWindow, GWLP_WNDPROC));
-        if (current == WndProcHandler)
-        {
-            SetWindowLongPtrW(hGameWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(oWndProc));
-        }
-    }
+    RestoreWindowProcedure();
 
     if (menu)
     {

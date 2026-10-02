@@ -2,6 +2,7 @@
 
 #include "Game/Features.h"
 #include "Core/Runtime.hpp"
+#include "Hooks/core/ForceCursorVisible.hpp"
 
 #include "Gfx/Fonts.hpp"
 
@@ -194,6 +195,13 @@ void Menu::DrawProfile()
             ImGui::SetCursorPosX(ccx - 128.0f * s);
             if (Button(tr("Выгрузить чит", "Unload cheat")))
             {
+                // Cursor/UI state belongs to MTA's render thread. Restore it
+                // here before the worker thread starts tearing hooks down.
+                g_cfg.menu_open = false;
+                if (Cself && callForceCursorVisible)
+                {
+                    callForceCursorVisible(Cself, false, false);
+                }
                 Runtime::RequestUnload();
             }
         }
