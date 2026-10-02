@@ -72,7 +72,6 @@ class Menu
     std::array<float, 5> subtab_alpha{};
     int prev_tab = 0;
     std::array<int, 5> prev_sub{};
-    LPDIRECT3DTEXTURE9 kb_texture = nullptr;
     LPDIRECT3DTEXTURE9 brand_banner_texture = nullptr;
     LPDIRECT3DTEXTURE9 brand_logo_texture = nullptr;
     uint32_t Hash_Label(const char* text);

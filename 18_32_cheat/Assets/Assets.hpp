@@ -8,7 +8,6 @@ extern unsigned char visuals_icon[372];
 extern unsigned char misc_icon[466];
 extern unsigned char skins_icon[331];
 extern unsigned char cfg_icon[186];
-extern unsigned char keyboard_icon[260];
 extern unsigned char brand_banner[127327];
 extern unsigned char brand_logo[153054];
 

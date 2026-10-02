@@ -186,10 +186,6 @@ void Menu::InitTextures()
 {
     IDirect3DDevice9* device = Blur::GetDevice();
 
-    if (device && !kb_texture)
-    {
-        Texture::FromMemory(device, keyboard_icon, sizeof(keyboard_icon), &kb_texture);
-    }
     if (device && !brand_banner_texture)
     {
         Texture::FromMemory(device, brand_banner, sizeof(brand_banner), &brand_banner_texture);
@@ -202,11 +198,6 @@ void Menu::InitTextures()
 
 void Menu::ReleaseTextures()
 {
-    if (kb_texture)
-    {
-        kb_texture->Release();
-        kb_texture = nullptr;
-    }
     if (brand_banner_texture)
     {
         brand_banner_texture->Release();

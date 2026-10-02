@@ -10,8 +10,46 @@
 #include "CSprite.h"
 #include "ePedBones.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
+
+namespace
+{
+    constexpr float kMaximumHealth = 300.0f;
+    constexpr float kMaximumArmor = 128.0f;
+
+    bool WorldToScreen(const RwV3d& world, ImVec2& screen)
+    {
+        RwV3d projected{};
+        float width = 0.0f;
+        float height = 0.0f;
+
+        if (!CSprite::CalcScreenCoors(world, &projected, &width, &height, false, false))
+        {
+            return false;
+        }
+
+        screen = ImVec2(projected.x, projected.y);
+        return true;
+    }
+
+    void DrawOutlinedLine(ImDrawList* draw, const ImVec2& from, const ImVec2& to,
+        ImU32 color, float thickness)
+    {
+        draw->AddLine(from, to, IM_COL32(0, 0, 0, 190), thickness + 2.0f);
+        draw->AddLine(from, to, color, thickness);
+    }
+
+    void DrawCenteredText(ImDrawList* draw, float centerX, float y,
+        ImU32 color, const char* text)
+    {
+        const ImVec2 size = ImGui::CalcTextSize(text);
+        const ImVec2 pos(centerX - size.x * 0.5f, y);
+        draw->AddText(pos + ImVec2(1.0f, 1.0f), IM_COL32(0, 0, 0, 230), text);
+        draw->AddText(pos, color, text);
+    }
+}
 
 void Esp::Update()
 {
@@ -20,160 +58,161 @@ void Esp::Update()
         return;
     }
 
-    CPed* pLocal = FindPlayerPed();
+    CPed* local = FindPlayerPed();
 
-    if (!pLocal || !CPools::ms_pPedPool)
+    if (!local || !CPools::ms_pPedPool)
     {
         return;
     }
 
-    const CVector localPos = pLocal->GetPosition();
-    const float s = menu->GetScale();
+    const CVector localPosition = local->GetPosition();
+    const float scale = menu->GetScale();
+    const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
     ImDrawList* draw = ImGui::GetForegroundDrawList();
-    const ImU32 boxCol = g_cfg.whcol.to_color().as_imcolor();
-    const ImU32 backCol = IM_COL32(0, 0, 0, 180);
-    const ImU32 armorCol = g_cfg.armorcol.to_color().as_imcolor();
-    const ImU32 textCol = g_cfg.distcol.to_color().as_imcolor();
-    const ImU32 skelCol = g_cfg.skelcol.to_color().as_imcolor();
-    const ImU32 snapCol = g_cfg.snapcol.to_color().as_imcolor();
 
+    const ImU32 boxColor = static_cast<ImU32>(g_cfg.whcol.to_color().as_imcolor());
+    const ImU32 boxFill = static_cast<ImU32>(g_cfg.whcol.to_color(18).as_imcolor());
+    const ImU32 hpColor = static_cast<ImU32>(g_cfg.hpcol.to_color().as_imcolor());
+    const ImU32 armorColor = static_cast<ImU32>(g_cfg.armorcol.to_color().as_imcolor());
+    const ImU32 textColor = static_cast<ImU32>(g_cfg.distcol.to_color().as_imcolor());
+    const ImU32 skeletonColor = static_cast<ImU32>(g_cfg.skelcol.to_color().as_imcolor());
+    const ImU32 tracerColor = static_cast<ImU32>(g_cfg.snapcol.to_color().as_imcolor());
+    const ImU32 backgroundColor = IM_COL32(0, 0, 0, 190);
+
+    CMatrix& camera = TheCamera.m_mCameraMatrix;
     const int poolSize = CPools::ms_pPedPool->m_nSize;
-    CMatrix& camM = TheCamera.m_mCameraMatrix;
 
-    for (int i = 0; i < poolSize; i++)
+    for (int i = 0; i < poolSize; ++i)
     {
         CPed* ped = CPools::ms_pPedPool->GetAt(i);
 
-        if (!ped || ped == pLocal || ped->m_fHealth <= 0.0f)
+        if (!ped || ped == local || ped->m_fHealth <= 0.0f)
         {
             continue;
         }
 
-        const CVector foot = ped->GetPosition();
-        const float dist = VecLength(CVector(foot.x - localPos.x, foot.y - localPos.y, foot.z - localPos.z));
+        const CVector position = ped->GetPosition();
+        const CVector delta(position.x - localPosition.x,
+            position.y - localPosition.y, position.z - localPosition.z);
+        const float distance = VecLength(delta);
 
-        if (dist > g_cfg.whDistance)
+        if (distance > g_cfg.whDistance)
         {
             continue;
         }
 
-        {
-            float tx = foot.x - camM.pos.x;
-            float ty = foot.y - camM.pos.y;
-            float tz = foot.z - camM.pos.z;
+        const float cameraDepth = delta.x * camera.at.x
+            + delta.y * camera.at.y + delta.z * camera.at.z;
 
-            if (tx * camM.at.x + ty * camM.at.y + tz * camM.at.z <= 0.0f)
+        if (cameraDepth <= 0.0f)
+        {
+            continue;
+        }
+
+        RwV3d headWorld{};
+        ped->GetBonePosition(headWorld, BONE_HEAD, true);
+        headWorld.z += 0.12f;
+
+        float feetZ = position.z;
+        if (CColModel* collision = ped->GetColModel())
+        {
+            const float minimumZ = collision->m_boundBox.m_vecMin.z;
+            if (minimumZ >= -2.0f && minimumZ <= 0.5f)
             {
-                continue;
+                feetZ += minimumZ;
             }
         }
 
-        float pedH = 1.8f;
-        float footZ = foot.z;
+        const RwV3d feetWorld = { position.x, position.y, feetZ };
+        ImVec2 headScreen{};
+        ImVec2 feetScreen{};
 
-        if (CColModel* col = ped->GetColModel())
-        {
-            const float h = col->m_boundBox.m_vecMax.z - col->m_boundBox.m_vecMin.z;
-
-            if (h >= 0.5f && h <= 3.0f)
-            {
-                pedH = h;
-                footZ = foot.z + col->m_boundBox.m_vecMin.z;
-            }
-        }
-
-        const RwV3d foot3d = { foot.x, foot.y, footZ };
-        const RwV3d head3d = { foot.x, foot.y, footZ + pedH };
-        RwV3d footScr{}, headScr{};
-        float w = 0.0f, h = 0.0f;
-
-        if (!CSprite::CalcScreenCoors(foot3d, &footScr, &w, &h, false, false))
+        if (!WorldToScreen(headWorld, headScreen) || !WorldToScreen(feetWorld, feetScreen))
         {
             continue;
         }
 
-        if (!CSprite::CalcScreenCoors(head3d, &headScr, &w, &h, false, false))
+        const float boxHeight = feetScreen.y - headScreen.y;
+        if (boxHeight < 4.0f)
         {
             continue;
         }
 
-        const float boxH = footScr.y - headScr.y;
-
-        if (boxH <= 0.0f)
-        {
-            continue;
-        }
-
-        const float boxW = boxH * 0.45f;
-        const ImVec2 min(headScr.x - boxW * 0.5f, headScr.y);
-        const ImVec2 max(headScr.x + boxW * 0.5f, footScr.y);
+        const float boxWidth = boxHeight * 0.46f;
+        const float centerX = (headScreen.x + feetScreen.x) * 0.5f;
+        const ImVec2 boxMin(centerX - boxWidth * 0.5f, headScreen.y);
+        const ImVec2 boxMax(centerX + boxWidth * 0.5f, feetScreen.y);
 
         if (g_cfg.wh_flags & WH_SNAP)
         {
-            const ImVec2 from(ImGui::GetIO().DisplaySize.x * 0.5f,
-                ImGui::GetIO().DisplaySize.y - 1.0f);
-            const ImVec2 to((min.x + max.x) * 0.5f, max.y);
-            draw->AddLine(from, to, snapCol, 2.0f);
+            DrawOutlinedLine(draw,
+                ImVec2(displaySize.x * 0.5f, displaySize.y - 1.0f),
+                ImVec2(centerX, boxMax.y), tracerColor, 1.5f);
         }
 
         if (g_cfg.wh_flags & WH_BOX)
         {
-            draw->AddRect(min - ImVec2(1.0f, 1.0f), max + ImVec2(1.0f, 1.0f), backCol, 0.0f, 0, 1.0f);
-            draw->AddRect(min, max, boxCol, 0.0f, 0, 1.0f);
-            draw->AddRect(min + ImVec2(1.0f, 1.0f), max - ImVec2(1.0f, 1.0f), backCol, 0.0f, 0, 1.0f);
+            draw->AddRectFilled(boxMin, boxMax, boxFill);
+            draw->AddRect(boxMin - ImVec2(1.0f, 1.0f),
+                boxMax + ImVec2(1.0f, 1.0f), backgroundColor);
+            draw->AddRect(boxMin, boxMax, boxColor);
+            draw->AddRect(boxMin + ImVec2(1.0f, 1.0f),
+                boxMax - ImVec2(1.0f, 1.0f), backgroundColor);
         }
 
         if (g_cfg.wh_flags & WH_HP)
         {
-            const float hp = std::clamp(ped->m_fHealth / 100.0f, 0.0f, 1.0f);
-            const ImVec2 barMin(min.x - 5.0f * s, min.y);
-            const ImVec2 barMax(min.x - 2.0f * s, max.y);
-            const ImU32 hpFill = g_cfg.hpcol.to_color().multiply(c_color(255, 30, 30), 1.0f - hp).as_imcolor();
-            draw->AddRect(barMin - ImVec2(1.0f, 1.0f), barMax + ImVec2(1.0f, 1.0f), backCol, 0.0f, 0, 1.0f);
-            draw->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, 150), 0.0f);
-            draw->AddRectFilled(ImVec2(barMin.x, barMax.y - (barMax.y - barMin.y) * hp), barMax, hpFill, 0.0f);
+            const float healthFraction = std::clamp(ped->m_fHealth / kMaximumHealth, 0.0f, 1.0f);
+            const ImVec2 barMin(boxMin.x - 7.0f * scale, boxMin.y);
+            const ImVec2 barMax(boxMin.x - 3.0f * scale, boxMax.y);
+            draw->AddRectFilled(barMin - ImVec2(1.0f, 1.0f),
+                barMax + ImVec2(1.0f, 1.0f), backgroundColor);
+            draw->AddRectFilled(barMin, barMax, IM_COL32(18, 18, 18, 210));
+            draw->AddRectFilled(
+                ImVec2(barMin.x, barMax.y - (barMax.y - barMin.y) * healthFraction),
+                barMax, hpColor);
         }
 
-        if ((g_cfg.wh_flags & WH_ARMOR) && ped->m_fArmour > 0.0f)
+        if (g_cfg.wh_flags & WH_ARMOR)
         {
-            const float ap = std::clamp(ped->m_fArmour / 100.0f, 0.0f, 1.0f);
-            const ImVec2 barMin(max.x + 2.0f * s, min.y);
-            const ImVec2 barMax(max.x + 5.0f * s, max.y);
-            draw->AddRect(barMin - ImVec2(1.0f, 1.0f), barMax + ImVec2(1.0f, 1.0f), backCol, 0.0f, 0, 1.0f);
-            draw->AddRectFilled(barMin, barMax, IM_COL32(0, 0, 0, 150), 0.0f);
-            draw->AddRectFilled(ImVec2(barMin.x, barMax.y - (barMax.y - barMin.y) * ap), barMax, armorCol, 0.0f);
+            const float armorFraction = std::clamp(ped->m_fArmour / kMaximumArmor, 0.0f, 1.0f);
+            const ImVec2 barMin(boxMax.x + 3.0f * scale, boxMin.y);
+            const ImVec2 barMax(boxMax.x + 7.0f * scale, boxMax.y);
+            draw->AddRectFilled(barMin - ImVec2(1.0f, 1.0f),
+                barMax + ImVec2(1.0f, 1.0f), backgroundColor);
+            draw->AddRectFilled(barMin, barMax, IM_COL32(18, 18, 18, 210));
+            draw->AddRectFilled(
+                ImVec2(barMin.x, barMax.y - (barMax.y - barMin.y) * armorFraction),
+                barMax, armorColor);
         }
 
         if (g_cfg.wh_flags & WH_TEXT)
         {
-            char buf[40]{};
-            snprintf(buf, sizeof(buf), "HP: %d  Armor: %d",
-                (int)std::clamp(ped->m_fHealth, 0.0f, 100.0f),
-                (int)std::clamp(ped->m_fArmour, 0.0f, 100.0f));
-            const ImVec2 textSize = ImGui::CalcTextSize(buf);
-            const ImVec2 tp((min.x + max.x - textSize.x) * 0.5f,
-                min.y - textSize.y - 3.0f * s);
-            draw->AddText(tp + ImVec2(1.0f, 1.0f), IM_COL32(0, 0, 0, 220), buf);
-            draw->AddText(tp, textCol, buf);
+            char values[48]{};
+            const int health = (int)std::lround(std::clamp(ped->m_fHealth, 0.0f, kMaximumHealth));
+            const int armor = (int)std::lround(std::clamp(ped->m_fArmour, 0.0f, kMaximumArmor));
+            snprintf(values, sizeof(values), "HP: %d  Armor: %d", health, armor);
+            const float y = boxMin.y - ImGui::GetTextLineHeight() - 4.0f * scale;
+            DrawCenteredText(draw, centerX, y, textColor, values);
         }
 
         if (g_cfg.wh_flags & WH_DIST)
         {
-            char buf[16]{};
-            snprintf(buf, sizeof(buf), "%d m", (int)dist);
-            const ImVec2 tp(min.x, max.y + 2.0f * s);
-            draw->AddText(tp + ImVec2(1.0f, 1.0f), IM_COL32(0, 0, 0, 200), buf);
-            draw->AddText(tp, textCol, buf);
+            char value[24]{};
+            snprintf(value, sizeof(value), "%d m", (int)std::lround(distance));
+            DrawCenteredText(draw, centerX, boxMax.y + 3.0f * scale, textColor, value);
         }
 
         if (g_cfg.wh_flags & WH_SKELETON)
         {
-            static const int segs[][2] = {
+            static constexpr int segments[][2] = {
                 { BONE_PELVIS, BONE_SPINE1 }, { BONE_SPINE1, BONE_UPPERTORSO },
                 { BONE_UPPERTORSO, BONE_NECK }, { BONE_NECK, BONE_HEAD },
-                { BONE_UPPERTORSO, BONE_RIGHTSHOULDER }, { BONE_RIGHTSHOULDER, BONE_RIGHTELBOW },
+                { BONE_UPPERTORSO, BONE_RIGHTSHOULDER },
+                { BONE_RIGHTSHOULDER, BONE_RIGHTELBOW },
                 { BONE_RIGHTELBOW, BONE_RIGHTWRIST },
-                { BONE_UPPERTORSO, BONE_LEFTSHOULDER }, { BONE_LEFTSHOULDER, BONE_LEFTELBOW },
+                { BONE_UPPERTORSO, BONE_LEFTSHOULDER },
+                { BONE_LEFTSHOULDER, BONE_LEFTELBOW },
                 { BONE_LEFTELBOW, BONE_LEFTWRIST },
                 { BONE_PELVIS, BONE_RIGHTHIP }, { BONE_RIGHTHIP, BONE_RIGHTKNEE },
                 { BONE_RIGHTKNEE, BONE_RIGHTANKLE },
@@ -181,29 +220,21 @@ void Esp::Update()
                 { BONE_LEFTKNEE, BONE_LEFTANKLE },
             };
 
-            for (int si = 0; si < 16; si++)
+            for (const auto& segment : segments)
             {
-                RwV3d bw0{}, bw1{};
+                RwV3d firstWorld{};
+                RwV3d secondWorld{};
+                ped->GetBonePosition(firstWorld, (unsigned int)segment[0], true);
+                ped->GetBonePosition(secondWorld, (unsigned int)segment[1], true);
 
-                ped->GetBonePosition(bw0, (unsigned int)segs[si][0], true);
-                ped->GetBonePosition(bw1, (unsigned int)segs[si][1], true);
-
-                RwV3d bs0{}, bs1{};
-                float sw = 0.0f, sh = 0.0f;
-
-                if (!CSprite::CalcScreenCoors(bw0, &bs0, &sw, &sh, false, false))
+                ImVec2 firstScreen{};
+                ImVec2 secondScreen{};
+                if (WorldToScreen(firstWorld, firstScreen)
+                    && WorldToScreen(secondWorld, secondScreen))
                 {
-                    continue;
+                    DrawOutlinedLine(draw, firstScreen, secondScreen, skeletonColor, 1.0f);
                 }
-
-                if (!CSprite::CalcScreenCoors(bw1, &bs1, &sw, &sh, false, false))
-                {
-                    continue;
-                }
-
-                draw->AddLine(ImVec2(bs0.x, bs0.y), ImVec2(bs1.x, bs1.y), skelCol, 1.0f);
             }
         }
-
     }
 }

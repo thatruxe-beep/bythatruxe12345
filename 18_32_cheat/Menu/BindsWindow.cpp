@@ -7,6 +7,72 @@
 
 #include <cmath>
 
+namespace
+{
+    void DrawWasdKey(ImDrawList* list, const ImVec2& min, float size,
+        char letter, ImU32 outline, ImU32 fill)
+    {
+        const ImVec2 max = min + ImVec2(size, size);
+        list->AddRectFilled(min, max, fill, 1.5f);
+        list->AddRect(min, max, outline, 1.5f, 0, 1.0f);
+
+        const float x = min.x;
+        const float y = min.y;
+        const float a = size * 0.25f;
+        const float b = size * 0.75f;
+        const float m = size * 0.50f;
+        const float top = y + size * 0.27f;
+        const float bot = y + size * 0.73f;
+        const float stroke = ImMax(1.0f, size * 0.11f);
+
+        if (letter == 'W')
+        {
+            const ImVec2 points[] = {
+                ImVec2(x + a, top), ImVec2(x + size * 0.37f, bot),
+                ImVec2(x + m, y + size * 0.48f), ImVec2(x + size * 0.63f, bot),
+                ImVec2(x + b, top)
+            };
+            list->AddPolyline(points, 5, outline, false, stroke);
+        }
+        else if (letter == 'A')
+        {
+            list->AddLine(ImVec2(x + a, bot), ImVec2(x + m, top), outline, stroke);
+            list->AddLine(ImVec2(x + m, top), ImVec2(x + b, bot), outline, stroke);
+            list->AddLine(ImVec2(x + size * 0.36f, y + size * 0.56f),
+                ImVec2(x + size * 0.64f, y + size * 0.56f), outline, stroke);
+        }
+        else if (letter == 'S')
+        {
+            const ImVec2 points[] = {
+                ImVec2(x + b, top), ImVec2(x + a, top),
+                ImVec2(x + a, y + size * 0.50f), ImVec2(x + b, y + size * 0.50f),
+                ImVec2(x + b, bot), ImVec2(x + a, bot)
+            };
+            list->AddPolyline(points, 6, outline, false, stroke);
+        }
+        else
+        {
+            list->AddLine(ImVec2(x + a, top), ImVec2(x + a, bot), outline, stroke);
+            list->AddLine(ImVec2(x + a, top), ImVec2(x + size * 0.58f, top), outline, stroke);
+            list->AddLine(ImVec2(x + a, bot), ImVec2(x + size * 0.58f, bot), outline, stroke);
+            list->AddLine(ImVec2(x + size * 0.58f, top), ImVec2(x + b, y + size * 0.50f), outline, stroke);
+            list->AddLine(ImVec2(x + b, y + size * 0.50f), ImVec2(x + size * 0.58f, bot), outline, stroke);
+        }
+    }
+
+    void DrawWasdIcon(ImDrawList* list, const ImVec2& pos, float scale, float alpha)
+    {
+        const float key = 7.0f * scale;
+        const float gap = 1.0f * scale;
+        const ImU32 outline = static_cast<ImU32>(g_cfg.accent.to_color((int)(255.0f * alpha)).as_imcolor());
+        const ImU32 fill = static_cast<ImU32>(g_cfg.accent.to_color((int)(40.0f * alpha)).as_imcolor());
+        DrawWasdKey(list, pos + ImVec2(key + gap, 0.0f), key, 'W', outline, fill);
+        DrawWasdKey(list, pos + ImVec2(0.0f, key + gap), key, 'A', outline, fill);
+        DrawWasdKey(list, pos + ImVec2(key + gap, key + gap), key, 'S', outline, fill);
+        DrawWasdKey(list, pos + ImVec2((key + gap) * 2.0f, key + gap), key, 'D', outline, fill);
+    }
+}
+
 static std::string Bind_Display_Name(int i)
 {
     switch (i)
@@ -218,14 +284,13 @@ void Menu::DrawBinds()
 
     const std::string title = tr("Бинды", "Binds");
     ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
-    float head_x = window_pos.x + (content_w - (16.0f * s + 6.0f * s + title_size.x)) * 0.5f;
+    const float icon_w = 23.0f * s;
+    const float icon_gap = 6.0f * s;
+    float head_x = window_pos.x + (content_w - (icon_w + icon_gap + title_size.x)) * 0.5f;
 
-    if (kb_texture)
-    {
-        list->AddImage((void*)kb_texture, ImVec2(head_x, window_pos.y + 8.0f * s), ImVec2(head_x + 16.0f * s, window_pos.y + 24.0f * s), ImVec2(0, 0), ImVec2(1, 1), g_cfg.accent.to_color().new_alpha((int)window_alpha).as_imcolor());
-    }
+    DrawWasdIcon(list, ImVec2(head_x, window_pos.y + 5.0f * s), s, bind_alpha);
 
-    list->AddText(ImVec2(head_x + 22.0f * s, window_pos.y + 8.0f * s), c_color(255, 255, 255, (int)window_alpha).as_imcolor(), title.c_str());
+    list->AddText(ImVec2(head_x + icon_w + icon_gap, window_pos.y + 8.0f * s), c_color(255, 255, 255, (int)window_alpha).as_imcolor(), title.c_str());
 
     list->AddLine(window_pos + ImVec2(0, head_h - 1.0f * s), window_pos + ImVec2(content_w, head_h - 1.0f * s), c_color(255, 255, 255, (int)(12.75f * bind_alpha)).as_imcolor());
 
