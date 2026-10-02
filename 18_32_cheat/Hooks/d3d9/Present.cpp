@@ -172,6 +172,8 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     // Периодическая проверка срока (истёкший ключ отключает функции).
     License::Tick();
 
+    static bool sAuthCursorActive = false;
+
     if (!License::Authorized())
     {
         // До активации лицензии ни одна функция чита не работает:
@@ -179,13 +181,46 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         Auth::Draw();
         License::EnforceExit();
 
-        // Пусть ImGui сам показывает системный курсор-стрелку.
-        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+        // Курсор — как у открытого меню: принудительно показываем игровой
+        // курсор и рисуем акцентную стрелку поверх (работает и в одиночной
+        // игре, где игрового курсора нет).
+        if (Cself && callForceCursorVisible)
+        {
+            callForceCursorVisible(Cself, true, true);
+            sAuthCursorActive = true;
+        }
+
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+
+        if (hGameWindow)
+        {
+            POINT p;
+            GetCursorPos(&p);
+            ScreenToClient(hGameWindow, &p);
+            const float cursorScale = g_cfg.ui_scale / 100.0f;
+            const ImVec2 origin((float)p.x, (float)p.y);
+            const ImU32 accent = static_cast<ImU32>(g_cfg.accent.to_color().as_imcolor());
+
+            // Use ImGui's standard arrow geometry (matching a regular system cursor)
+            // and only replace its white fill with the configured accent color.
+            ImGui::RenderMouseCursor(ImGui::GetForegroundDrawList(), origin, cursorScale,
+                ImGuiMouseCursor_Arrow, accent, IM_COL32(15, 15, 15, 255), IM_COL32(0, 0, 0, 80));
+        }
 
         ImGui::EndFrame();
         ImGui::Render();
         ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
         return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
+    }
+
+    // Окно активации закрылось — возвращаем курсор в обычное состояние игры.
+    if (sAuthCursorActive)
+    {
+        sAuthCursorActive = false;
+        if (Cself && callForceCursorVisible)
+        {
+            callForceCursorVisible(Cself, false, false);
+        }
     }
 
     KeyBinds::Update();

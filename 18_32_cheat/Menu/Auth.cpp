@@ -74,6 +74,9 @@ void Auth::Draw()
     const bool canType = (phase == License::Phase::NeedKey
                           || phase == License::Phase::Expired
                           || phase == License::Phase::HwidMismatch);
+    // Каждый раз при появлении поля — сразу фокус на него, чтобы можно было
+    // печатать ключ без клика мышью.
+    static bool sFocusPending = true;
 
     // -- шапка ----------------------------------------------------------
     const float logo = 44.0f * s;
@@ -110,10 +113,15 @@ void Auth::Draw()
     if (canType)
     {
         ImGui::SetNextItemWidth(-1.0f);
+        if (sFocusPending)
+        {
+            ImGui::SetKeyboardFocusHere(0);
+        }
         const bool enterPressed = ImGui::InputText(
             "##auth_key", License::KeyBuffer(), 64,
             ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_CharsNoBlank |
                 ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue);
+        sFocusPending = false;
 
         ImGui::Spacing();
 
@@ -133,6 +141,7 @@ void Auth::Draw()
     }
     else
     {
+        sFocusPending = true;
         ImGui::Dummy(ImVec2(width, 38.0f * s));
     }
 
