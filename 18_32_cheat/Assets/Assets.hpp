@@ -9,4 +9,6 @@ extern unsigned char misc_icon[466];
 extern unsigned char skins_icon[331];
 extern unsigned char cfg_icon[186];
 extern unsigned char keyboard_icon[260];
+extern unsigned char brand_banner[112212];
+extern unsigned char brand_logo[134473];
 

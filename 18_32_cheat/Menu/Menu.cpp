@@ -191,6 +191,14 @@ void Menu::InitTextures()
     {
         Texture::FromMemory(device, keyboard_icon, sizeof(keyboard_icon), &kb_texture);
     }
+    if (device && !brand_banner_texture)
+    {
+        Texture::FromMemory(device, brand_banner, sizeof(brand_banner), &brand_banner_texture);
+    }
+    if (device && !brand_logo_texture)
+    {
+        Texture::FromMemory(device, brand_logo, sizeof(brand_logo), &brand_logo_texture);
+    }
 }
 
 void Menu::ReleaseTextures()
@@ -199,6 +207,16 @@ void Menu::ReleaseTextures()
     {
         kb_texture->Release();
         kb_texture = nullptr;
+    }
+    if (brand_banner_texture)
+    {
+        brand_banner_texture->Release();
+        brand_banner_texture = nullptr;
+    }
+    if (brand_logo_texture)
+    {
+        brand_logo_texture->Release();
+        brand_logo_texture = nullptr;
     }
 }
 
@@ -331,18 +349,22 @@ void Menu::DrawBackground()
     list->AddRect(pos + ImVec2(160.0f * s, 0), pos + size, IM_COL32(50, 50, 50, alpha8),
         10.0f * s, ImDrawCornerFlags_Right, 1.0f * s);
 
-    // Compact 18:32 brand area in the same placement as the reference logos.
-    list->AddText(g_fonts.dmg, 25.0f * s, pos + ImVec2(22.0f * s, 17.0f * s), accentColor, "18:32");
-    list->AddText(pos + ImVec2(24.0f * s, 45.0f * s), IM_COL32(235, 235, 235, alpha8), "CHEAT");
-    list->AddLine(pos + ImVec2(13.0f * s, 68.0f * s), pos + ImVec2(148.0f * s, 68.0f * s),
-        IM_COL32(50, 50, 50, alpha8));
-
-    static const char* pageNames[] = { "RAGE", "LEGIT", "VISUALS", "MISC", "PROFILE" };
-    list->AddText(pos + ImVec2(184.0f * s, 20.0f * s), IM_COL32(105, 105, 105, alpha8), "18:32 CHEAT");
-    list->AddText(g_fonts.dmg, 19.0f * s, pos + ImVec2(184.0f * s, 39.0f * s),
-        IM_COL32(240, 240, 240, alpha8), pageNames[tab_selector]);
-    list->AddLine(pos + ImVec2(178.0f * s, 69.0f * s), pos + ImVec2(824.0f * s, 69.0f * s),
-        IM_COL32(43, 43, 43, alpha8));
+    // User-provided artwork is rendered without accent tint so its original colors stay intact.
+    if (brand_logo_texture)
+    {
+        list->AddImageRounded((void*)brand_logo_texture,
+            pos + ImVec2(19.0f * s, 8.0f * s), pos + ImVec2(142.0f * s, 131.0f * s),
+            ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha8), 7.0f * s);
+    }
+    if (brand_banner_texture)
+    {
+        list->AddImageRounded((void*)brand_banner_texture,
+            pos + ImVec2(161.0f * s, 0), pos + ImVec2(838.0f * s, 168.0f * s),
+            ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha8),
+            10.0f * s, ImDrawCornerFlags_TopRight);
+        list->AddRect(pos + ImVec2(160.0f * s, 0), pos + ImVec2(838.0f * s, 168.0f * s),
+            IM_COL32(50, 50, 50, alpha8), 10.0f * s, ImDrawCornerFlags_TopRight);
+    }
 
     float health = 0.0f;
     float maxHealth = 100.0f;
@@ -366,8 +388,9 @@ void Menu::DrawBackground()
         ImVec2(cardMin.x + (35.0f + 100.0f * healthRatio) * s, cardMax.y - 7.0f * s), accentColor, 2.0f * s);
 
     ImGuiIO& io = ImGui::GetIO();
-    const ImVec2 dragMax = pos + ImVec2(838.0f * s, 70.0f * s);
-    if (!s_dragging && ImGui::IsMouseHoveringRect(pos, dragMax) && ImGui::IsMouseClicked(0))
+    const ImVec2 dragMin = pos + ImVec2(161.0f * s, 0);
+    const ImVec2 dragMax = pos + ImVec2(838.0f * s, 168.0f * s);
+    if (!s_dragging && ImGui::IsMouseHoveringRect(dragMin, dragMax) && ImGui::IsMouseClicked(0))
     {
         s_dragging = true;
         s_drag_offset = ImVec2(io.MousePos.x - pos.x, io.MousePos.y - pos.y);
@@ -401,7 +424,7 @@ void Menu::DrawTabs()
         tr("Рейдж", "Rage"), tr("Легит", "Legit"), tr("Визуалы", "Visuals"),
         tr("Разное", "Misc"), tr("Профиль", "Profile")
     };
-    const float rows[5] = { 88.0f, 126.0f, 164.0f, 202.0f, 240.0f };
+    const float rows[5] = { 145.0f, 183.0f, 221.0f, 259.0f, 297.0f };
 
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
@@ -445,7 +468,7 @@ void Menu::DrawSubTabs(int& selector, const std::vector<std::string>& tabs)
     ImGuiStyle& style = ImGui::GetStyle();
     float a = GetAlpha();
     float wa = 255.0f * a;
-    ImVec2 child_pos = GetWindowPos() + ImVec2(178.0f * s, 78.0f * s);
+    ImVec2 child_pos = GetWindowPos() + ImVec2(178.0f * s, 180.0f * s);
     ImVec2 prev = ImGui::GetCursorPos();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
@@ -497,8 +520,8 @@ void Menu::DrawSubTabs(int& selector, const std::vector<std::string>& tabs)
     ImGui::PopStyleColor(4);
     ImGui::SetCursorPos(prev);
     ImGui::ItemSize(ImVec2(0, 58.0f * s));
-    ImGui::PushClipRect(child_pos + ImVec2(0.0f, 58.0f * s), child_pos + ImVec2(646.0f * s, 445.0f * s), false);
-    draw_list->PushClipRect(child_pos + ImVec2(0.0f, 58.0f * s), child_pos + ImVec2(646.0f * s, 445.0f * s));
+    ImGui::PushClipRect(child_pos + ImVec2(0.0f, 58.0f * s), child_pos + ImVec2(646.0f * s, 345.0f * s), false);
+    draw_list->PushClipRect(child_pos + ImVec2(0.0f, 58.0f * s), child_pos + ImVec2(646.0f * s, 345.0f * s));
 }
 
 void Menu::UpdateSubFade(int tab, int& sub)
@@ -562,8 +585,8 @@ void Menu::DrawContent()
     alpha = tab_alpha;
 
     const float s = GetScale();
-    ImGui::SetCursorPos(ImVec2(223.0f * s, 93.0f * s));
-    ImRect window_bb = ImRect(window_pos + ImVec2(161.0f * s, 70.0f * s), window_pos + ImVec2(838.0f * s, 535.0f * s));
+    ImGui::SetCursorPos(ImVec2(223.0f * s, 195.0f * s));
+    ImRect window_bb = ImRect(window_pos + ImVec2(161.0f * s, 168.0f * s), window_pos + ImVec2(838.0f * s, 535.0f * s));
     ImGui::PushClipRect(window_bb.Min, window_bb.Max, false);
     ImGui::BeginChild("##tab_child", ImVec2(), true);
 

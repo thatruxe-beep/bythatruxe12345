@@ -520,6 +520,12 @@
 
     </ClCompile>
 
+    <ClCompile Include="Assets\BrandAssets.cpp">
+
+      <Filter>Assets</Filter>
+
+    </ClCompile>
+
     <ClCompile Include="..\thirdparty\imgui\imgui.cpp">
 
       <Filter>thirdparty\imgui</Filter>

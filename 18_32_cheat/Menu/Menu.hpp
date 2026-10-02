@@ -73,6 +73,8 @@ class Menu
     int prev_tab = 0;
     std::array<int, 5> prev_sub{};
     LPDIRECT3DTEXTURE9 kb_texture = nullptr;
+    LPDIRECT3DTEXTURE9 brand_banner_texture = nullptr;
+    LPDIRECT3DTEXTURE9 brand_logo_texture = nullptr;
     uint32_t Hash_Label(const char* text);
     static bool Vector_Getter(void* vec, int idx, const char** out_text);
     static bool Items_Array_Getter(void* data, int idx, const char** out_text);
