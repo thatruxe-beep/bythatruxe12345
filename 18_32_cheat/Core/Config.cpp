@@ -209,6 +209,13 @@ bool config_t::Save(const std::string& name)
     WriteBool(body, "godmode", godmode);
     WriteInt(body, "godmode_key", godmode_bind.key);
     WriteInt(body, "godmode_mode", godmode_bind.mode);
+    WriteBool(body, "randomgodmode", randomgodmode);
+    WriteInt(body, "randomgodmode_key", randomgodmode_bind.key);
+    WriteInt(body, "randomgodmode_mode", randomgodmode_bind.mode);
+    WriteInt(body, "randomgodmode_chance", randomgodmode_chance);
+    WriteBool(body, "doublejump", doublejump);
+    WriteInt(body, "doublejump_key", doublejump_bind.key);
+    WriteInt(body, "doublejump_mode", doublejump_bind.mode);
     WriteBool(body, "nofall", nofall);
     WriteInt(body, "nofall_key", nofall_bind.key);
     WriteInt(body, "nofall_mode", nofall_bind.mode);
@@ -274,9 +281,7 @@ bool config_t::Save(const std::string& name)
     WriteBool(body, "rapidfire", rapidfire);
     WriteInt(body, "rapidfire_key", rapidfire_bind.key);
     WriteInt(body, "rapidfire_mode", rapidfire_bind.mode);
-    WriteBool(body, "damager", damager);
-    WriteInt(body, "damager_key", damager_bind.key);
-    WriteInt(body, "damager_mode", damager_bind.mode);
+    WriteFloat(body, "rapidfire_multiplier", rapidfire_multiplier);
 
     WriteInt(body, "wh_flags", (int)wh_flags);
     WriteColor(body, "whcol", whcol);
@@ -307,9 +312,15 @@ bool config_t::Save(const std::string& name)
     WriteBool(body, "autounlock", autounlock);
     WriteInt(body, "autounlock_key", autounlock_bind.key);
     WriteInt(body, "autounlock_mode", autounlock_bind.mode);
+    WriteBool(body, "autorepair", autorepair);
+    WriteInt(body, "autorepair_key", autorepair_bind.key);
+    WriteInt(body, "autorepair_mode", autorepair_bind.mode);
     WriteBool(body, "fastcross", fastcross);
     WriteInt(body, "fastcross_key", fastcross_bind.key);
     WriteInt(body, "fastcross_mode", fastcross_bind.mode);
+    WriteBool(body, "fastzoom", fastzoom);
+    WriteInt(body, "fastzoom_key", fastzoom_bind.key);
+    WriteInt(body, "fastzoom_mode", fastzoom_bind.mode);
     WriteBool(body, "norecoil", norecoil);
     WriteInt(body, "norecoil_key", norecoil_bind.key);
     WriteInt(body, "norecoil_mode", norecoil_bind.mode);
@@ -403,6 +414,13 @@ bool config_t::Load(const std::string& name)
         else if (key == "godmode") { ReadBool(value, godmode); }
         else if (key == "godmode_key") { ReadInt(value, godmode_bind.key); }
         else if (key == "godmode_mode") { ReadInt(value, godmode_bind.mode); }
+    else if (key == "randomgodmode") { ReadBool(value, randomgodmode); }
+    else if (key == "randomgodmode_key") { ReadInt(value, randomgodmode_bind.key); }
+    else if (key == "randomgodmode_mode") { ReadInt(value, randomgodmode_bind.mode); }
+    else if (key == "randomgodmode_chance") { ReadInt(value, randomgodmode_chance); }
+    else if (key == "doublejump") { ReadBool(value, doublejump); }
+    else if (key == "doublejump_key") { ReadInt(value, doublejump_bind.key); }
+    else if (key == "doublejump_mode") { ReadInt(value, doublejump_bind.mode); }
         else if (key == "nofall") { ReadBool(value, nofall); }
         else if (key == "nofall_key") { ReadInt(value, nofall_bind.key); }
         else if (key == "nofall_mode") { ReadInt(value, nofall_bind.mode); }
@@ -495,9 +513,7 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "rapidfire") { ReadBool(value, rapidfire); }
     else if (key == "rapidfire_key") { ReadInt(value, rapidfire_bind.key); }
     else if (key == "rapidfire_mode") { ReadInt(value, rapidfire_bind.mode); }
-    else if (key == "damager") { ReadBool(value, damager); }
-    else if (key == "damager_key") { ReadInt(value, damager_bind.key); }
-    else if (key == "damager_mode") { ReadInt(value, damager_bind.mode); }
+    else if (key == "rapidfire_multiplier") { ReadFloat(value, rapidfire_multiplier); }
 
     else if (key == "wh_flags") { int t = 15; if (ReadInt(value, t)) { wh_flags = (unsigned int)t; } }
     else if (key == "whcol") { ReadColor(value, whcol); }
@@ -528,9 +544,15 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "autounlock") { ReadBool(value, autounlock); }
     else if (key == "autounlock_key") { ReadInt(value, autounlock_bind.key); }
     else if (key == "autounlock_mode") { ReadInt(value, autounlock_bind.mode); }
+    else if (key == "autorepair") { ReadBool(value, autorepair); }
+    else if (key == "autorepair_key") { ReadInt(value, autorepair_bind.key); }
+    else if (key == "autorepair_mode") { ReadInt(value, autorepair_bind.mode); }
     else if (key == "fastcross") { ReadBool(value, fastcross); }
     else if (key == "fastcross_key") { ReadInt(value, fastcross_bind.key); }
     else if (key == "fastcross_mode") { ReadInt(value, fastcross_bind.mode); }
+    else if (key == "fastzoom") { ReadBool(value, fastzoom); }
+    else if (key == "fastzoom_key") { ReadInt(value, fastzoom_bind.key); }
+    else if (key == "fastzoom_mode") { ReadInt(value, fastzoom_bind.mode); }
     else if (key == "norecoil") { ReadBool(value, norecoil); }
     else if (key == "norecoil_key") { ReadInt(value, norecoil_bind.key); }
     else if (key == "norecoil_mode") { ReadInt(value, norecoil_bind.mode); }

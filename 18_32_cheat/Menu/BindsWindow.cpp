@@ -75,7 +75,7 @@ static std::string Bind_Display_Name(int i)
     case 24: return tr("Без отдачи", "No recoil");
     case 25: return tr("Без разброса", "No spread");
     case 26: return tr("Фов", "Fov");
-    case 27: return tr("Рванка", "Rvanka");
+    case 27: return tr("Таран", "Ram");
     case 28: return tr("Заморозить время", "Freeze time");
     case 29: return tr("Туман", "Fog");
     case 30: return tr("Солнце", "Sun");
@@ -83,7 +83,10 @@ static std::string Bind_Display_Name(int i)
     case 32: return tr("Без колизии камеры", "No camera collision");
     case 33: return tr("Камхак", "Camhack");
     case 34: return tr("Без урона от падения", "No fall damage");
-    case 35: return tr("Двойной урон", "Double damage");
+    case 35: return tr("Рандом ГМ", "Random god mode");
+    case 36: return tr("Двойной прыжок", "Double jump");
+    case 37: return tr("Быстрый зум", "Fast zoom");
+    case 38: return tr("ГМ авто", "Vehicle GM");
     default: return "";
     }
 }
@@ -138,7 +141,10 @@ void Menu::DrawBinds()
         { &g_cfg.nocamcol_bind, &g_cfg.nocamcol, false },
         { &g_cfg.camhack_bind, &g_cfg.camhack, false },
         { &g_cfg.nofall_bind, &g_cfg.nofall, false },
-        { &g_cfg.damager_bind, &g_cfg.damager, false },
+        { &g_cfg.randomgodmode_bind, &g_cfg.randomgodmode, false },
+        { &g_cfg.doublejump_bind, &g_cfg.doublejump, false },
+        { &g_cfg.fastzoom_bind, &g_cfg.fastzoom, false },
+        { &g_cfg.autorepair_bind, &g_cfg.autorepair, true },
     };
 
     static const int kBindCount = sizeof(kBinds) / sizeof(kBinds[0]);

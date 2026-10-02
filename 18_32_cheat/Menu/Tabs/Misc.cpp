@@ -7,6 +7,7 @@ void Menu::DrawMisc()
     static int subtab = 0;
     static float runFade = 0.0f;
     static float speedFade = 0.0f;
+    static float ramFade = 0.0f;
 
     std::vector<std::string> items = {
         tr("Игрок", "Player"),
@@ -72,6 +73,19 @@ void Menu::DrawMisc()
             }
             widget_alpha_mul = previousAlpha;
         }
+        BindableCheckbox("ram", tr("Таран", "Ram"), &g_cfg.ram, &g_cfg.ram_bind);
+        CreateAnimation(ramFade, g_cfg.ram, 0.3f, AnimLerp);
+        if (g_cfg.ram || ramFade > 0.02f)
+        {
+            const float previousAlpha = widget_alpha_mul;
+            widget_alpha_mul = ramFade;
+            if (SliderFloat(tr("Разгон", "Acceleration"), &g_cfg.rampower,
+                1.0f, 20.0f, "%.1f"))
+            {
+                SaveGeneralConfig();
+            }
+            widget_alpha_mul = previousAlpha;
+        }
         GroupEnd();
 
         ImGui::NextColumn();
@@ -80,6 +94,8 @@ void Menu::DrawMisc()
             &g_cfg.autoengine, &g_cfg.autoengine_bind);
         BindableCheckbox("autounlock", tr("Авторазблокировка", "Auto unlock"),
             &g_cfg.autounlock, &g_cfg.autounlock_bind);
+        BindableCheckbox("autorepair", tr("ГМ авто (авторемонт)", "Vehicle GM (auto repair)"),
+            &g_cfg.autorepair, &g_cfg.autorepair_bind);
         BindableCheckbox("nobikefall", tr("Не падать с байка", "No bike fall"),
             &g_cfg.nobikefall, &g_cfg.nobikefall_bind);
         GroupEnd();

@@ -261,8 +261,10 @@ void Esp::Update()
                 { BONE_LEFTELBOW, BONE_LEFTWRIST },
                 { BONE_PELVIS, BONE_RIGHTHIP }, { BONE_RIGHTHIP, BONE_RIGHTKNEE },
                 { BONE_RIGHTKNEE, BONE_RIGHTANKLE },
+                { BONE_RIGHTANKLE, BONE_RIGHTFOOT },
                 { BONE_PELVIS, BONE_LEFTHIP }, { BONE_LEFTHIP, BONE_LEFTKNEE },
                 { BONE_LEFTKNEE, BONE_LEFTANKLE },
+                { BONE_LEFTANKLE, BONE_LEFTFOOT },
             };
 
             for (const auto& segment : segments)

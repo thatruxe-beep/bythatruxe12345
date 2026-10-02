@@ -1,6 +1,6 @@
 #pragma once
 
-class Damager
+class FastZoom
 {
 public:
     static void Update();

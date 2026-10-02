@@ -23,6 +23,11 @@ struct config_t
     float binds_y = -1.0f;
     bool godmode = false;
     keybind_t godmode_bind{};
+    bool randomgodmode = false;
+    keybind_t randomgodmode_bind{};
+    int randomgodmode_chance = 50;
+    bool doublejump = false;
+    keybind_t doublejump_bind{};
     bool nofall = false;
     keybind_t nofall_bind{};
     bool fastbeg = false;
@@ -71,8 +76,7 @@ struct config_t
     c_float_color carrgb1 = c_float_color(255, 255, 255);
     bool rapidfire = false;
     keybind_t rapidfire_bind{};
-    bool damager = false;
-    keybind_t damager_bind{};
+    float rapidfire_multiplier = 1.0f;
     unsigned int wh_flags = 55;
     c_float_color whcol = c_float_color(168, 168, 255);
     c_float_color hpcol = c_float_color(110, 220, 110);
@@ -95,8 +99,12 @@ struct config_t
     keybind_t autoengine_bind{};
     bool autounlock = false;
     keybind_t autounlock_bind{};
+    bool autorepair = false;
+    keybind_t autorepair_bind{};
     bool fastcross = false;
     keybind_t fastcross_bind{};
+    bool fastzoom = false;
+    keybind_t fastzoom_bind{};
     bool norecoil = false;
     keybind_t norecoil_bind{};
     bool nospread = false;

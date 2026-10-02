@@ -19,7 +19,10 @@ void AirBreak::Run()
             TheCamera.m_bMoveCamToAvoidGeom = false;
         }
 
-        if (g_cfg.fov && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0)
+        const bool fastZoomHeld = g_cfg.fastzoom
+            && (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0;
+        if (g_cfg.fov && !fastZoomHeld
+            && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0)
         {
             float v = std::clamp(g_cfg.fovval, 30.0f, 120.0f);
             *(float*)0x8D5038 = v;

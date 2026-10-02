@@ -30,8 +30,10 @@
 #include "Game/Common.hpp"
 
 #include "Game/Rage/RapidFire.hpp"
-#include "Game/Rage/Damager.hpp"
+#include "Game/Rage/RandomGodMode.hpp"
+#include "Game/Rage/DoubleJump.hpp"
 #include "Game/Legit/FastCrosshair.hpp"
+#include "Game/Legit/FastZoom.hpp"
 #include "Game/Rage/NoRecoil.hpp"
 #include "Game/Legit/NoSpread.hpp"
 
@@ -58,5 +60,7 @@
 #include "Game/Misc/NoBikeFall.hpp"
 #include "Game/Misc/AutoEngine.hpp"
 #include "Game/Misc/AutoUnlock.hpp"
+#include "Game/Misc/AutoRepair.hpp"
+#include "Game/Misc/Ram.hpp"
 #include "Game/Misc/KeyBinds.hpp"
 #include "Game/Misc/CamHack.hpp"

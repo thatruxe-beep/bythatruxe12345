@@ -167,15 +167,17 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     KeyBinds::Update();
     World::Update();
     RapidFire::Update();
-    Damager::Update();
     GameSpeed::Update();
     FastRot::Update();
     VehicleFlags::Update();
     NoBikeFall::Update();
     Aspect::Update();
     Fov::Update();
+    FastZoom::Update();
     AutoEngine::Update();
     AutoUnlock::Update();
+    AutoRepair::Update();
+    Ram::Update();
     FastCrosshair::Update();
     NoRecoil::Update();
     NoSpread::Update();
@@ -186,6 +188,8 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     Esp::Update();
 
     GodMode::Update();
+    RandomGodMode::Update();
+    DoubleJump::Update();
     NoFall::Update();
     FastRun::Update();
     SpeedHack::Update();

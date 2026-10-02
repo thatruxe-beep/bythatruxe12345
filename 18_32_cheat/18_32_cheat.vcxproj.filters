@@ -339,8 +339,27 @@
       <Filter>Game\Rage</Filter>
 
     </ClCompile>
+    <ClCompile Include="Game\Misc\AutoRepair.cpp">
 
-    <ClCompile Include="Game\Rage\Damager.cpp">
+      <Filter>Game\Misc</Filter>
+
+    </ClCompile>
+    <ClCompile Include="Game\Misc\Ram.cpp">
+
+      <Filter>Game\Misc</Filter>
+
+    </ClCompile>
+    <ClCompile Include="Game\Legit\FastZoom.cpp">
+
+      <Filter>Game\Legit</Filter>
+
+    </ClCompile>
+    <ClCompile Include="Game\Rage\DoubleJump.cpp">
+
+      <Filter>Game\Rage</Filter>
+
+    </ClCompile>
+    <ClCompile Include="Game\Rage\RandomGodMode.cpp">
 
       <Filter>Game\Rage</Filter>
 
@@ -775,8 +794,27 @@
       <Filter>Game\Rage</Filter>
 
     </ClInclude>
+    <ClInclude Include="Game\Misc\AutoRepair.hpp">
 
-    <ClInclude Include="Game\Rage\Damager.hpp">
+      <Filter>Game\Misc</Filter>
+
+    </ClInclude>
+    <ClInclude Include="Game\Misc\Ram.hpp">
+
+      <Filter>Game\Misc</Filter>
+
+    </ClInclude>
+    <ClInclude Include="Game\Legit\FastZoom.hpp">
+
+      <Filter>Game\Legit</Filter>
+
+    </ClInclude>
+    <ClInclude Include="Game\Rage\DoubleJump.hpp">
+
+      <Filter>Game\Rage</Filter>
+
+    </ClInclude>
+    <ClInclude Include="Game\Rage\RandomGodMode.hpp">
 
       <Filter>Game\Rage</Filter>
 

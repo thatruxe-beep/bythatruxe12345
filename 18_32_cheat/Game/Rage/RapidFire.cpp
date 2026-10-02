@@ -2,20 +2,48 @@
 
 #include "Game/Rage/RapidFire.hpp"
 
+#include <algorithm>
+#include <cmath>
+
+namespace
+{
+    struct RapidSnapshot
+    {
+        float loopStart{};
+        float loopEnd{};
+        unsigned int loopFire{};
+        unsigned int loop2Start{};
+        unsigned int loop2End{};
+        unsigned int loop2Fire{};
+        float breakout{};
+    };
+
+    unsigned int ScaleTime(unsigned int value, float multiplier)
+    {
+        if (value == 0u)
+        {
+            return 0u;
+        }
+        const unsigned int scaled = static_cast<unsigned int>(std::lround(value / multiplier));
+        return scaled == 0u ? 1u : scaled;
+    }
+}
+
 void RapidFire::Update()
 {
-    static bool wasOn = false;
-    static float snap[17][4][6] = {};
+    static bool captured = false;
+    static RapidSnapshot original[17][4]{};
 
-    auto each = [](auto fn)
+    auto each = [](auto&& callback)
     {
-        for (int t = 22; t <= 38; t++)
+        for (int type = 22; type <= 38; ++type)
         {
-            for (int s = 0; s < 4; s++)
+            for (int skill = 0; skill < 4; ++skill)
             {
-                if (CWeaponInfo* wi = CWeaponInfo::GetWeaponInfo((eWeaponType)t, (unsigned char)s))
+                if (CWeaponInfo* info = CWeaponInfo::GetWeaponInfo(
+                    static_cast<eWeaponType>(type), static_cast<unsigned char>(skill)))
                 {
-                    fn(wi, t - 22, s);
+                    callback(*info, type - 22, skill);
                 }
             }
         }
@@ -23,44 +51,52 @@ void RapidFire::Update()
 
     if (!g_cfg.rapidfire)
     {
-        if (wasOn)
+        if (captured)
         {
-            each([&](CWeaponInfo* wi, int ti, int si)
+            each([&](CWeaponInfo& info, int type, int skill)
             {
-                float* f = reinterpret_cast<float*>(&wi->m_fAnimLoopStart);
-
-                for (int k = 0; k < 6; k++)
-                {
-                    f[k] = snap[ti][si][k];
-                }
+                const RapidSnapshot& value = original[type][skill];
+                info.m_fAnimLoopStart = value.loopStart;
+                info.m_fAnimLoopEnd = value.loopEnd;
+                info.m_nAnimLoopFire = value.loopFire;
+                info.m_nAnimLoop2Start = value.loop2Start;
+                info.m_nAnimLoop2End = value.loop2End;
+                info.m_nAnimLoop2Fire = value.loop2Fire;
+                info.m_fBreakoutTime = value.breakout;
             });
-            wasOn = false;
+            captured = false;
         }
-
         return;
     }
 
-    if (!wasOn)
+    if (!captured)
     {
-        each([&](CWeaponInfo* wi, int ti, int si)
+        each([&](CWeaponInfo& info, int type, int skill)
         {
-            float* f = reinterpret_cast<float*>(&wi->m_fAnimLoopStart);
-
-            for (int k = 0; k < 6; k++)
-            {
-                snap[ti][si][k] = f[k];
-            }
+            RapidSnapshot& value = original[type][skill];
+            value.loopStart = info.m_fAnimLoopStart;
+            value.loopEnd = info.m_fAnimLoopEnd;
+            value.loopFire = info.m_nAnimLoopFire;
+            value.loop2Start = info.m_nAnimLoop2Start;
+            value.loop2End = info.m_nAnimLoop2End;
+            value.loop2Fire = info.m_nAnimLoop2Fire;
+            value.breakout = info.m_fBreakoutTime;
         });
-        wasOn = true;
+        captured = true;
     }
 
-    each([](CWeaponInfo* wi, int, int)
-    {
-        float* f = reinterpret_cast<float*>(&wi->m_fAnimLoopStart);
+    const float multiplier = std::clamp(
+        std::round(g_cfg.rapidfire_multiplier * 10.0f) / 10.0f, 1.0f, 10.0f);
 
-        for (int k = 0; k < 6; k++)
-        {
-            f[k] = 0.0f;
-        }
+    each([&](CWeaponInfo& info, int type, int skill)
+    {
+        const RapidSnapshot& value = original[type][skill];
+        info.m_fAnimLoopStart = value.loopStart / multiplier;
+        info.m_fAnimLoopEnd = value.loopEnd / multiplier;
+        info.m_nAnimLoopFire = ScaleTime(value.loopFire, multiplier);
+        info.m_nAnimLoop2Start = ScaleTime(value.loop2Start, multiplier);
+        info.m_nAnimLoop2End = ScaleTime(value.loop2End, multiplier);
+        info.m_nAnimLoop2Fire = ScaleTime(value.loop2Fire, multiplier);
+        info.m_fBreakoutTime = value.breakout / multiplier;
     });
 }

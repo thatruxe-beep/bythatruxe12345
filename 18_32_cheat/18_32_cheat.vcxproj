@@ -233,7 +233,11 @@
     <ClCompile Include="Game\Legit\NoSpread.cpp" />
 
     <ClCompile Include="Game\Rage\RapidFire.cpp" />
-    <ClCompile Include="Game\Rage\Damager.cpp" />
+    <ClCompile Include="Game\Rage\RandomGodMode.cpp" />
+    <ClCompile Include="Game\Rage\DoubleJump.cpp" />
+    <ClCompile Include="Game\Legit\FastZoom.cpp" />
+    <ClCompile Include="Game\Misc\Ram.cpp" />
+    <ClCompile Include="Game\Misc\AutoRepair.cpp" />
 
     <ClCompile Include="Game\Misc\Aspect.cpp" />
 
@@ -403,7 +407,11 @@
     <ClInclude Include="Game\Legit\NoSpread.hpp" />
 
     <ClInclude Include="Game\Rage\RapidFire.hpp" />
-    <ClInclude Include="Game\Rage\Damager.hpp" />
+    <ClInclude Include="Game\Rage\RandomGodMode.hpp" />
+    <ClInclude Include="Game\Rage\DoubleJump.hpp" />
+    <ClInclude Include="Game\Legit\FastZoom.hpp" />
+    <ClInclude Include="Game\Misc\Ram.hpp" />
+    <ClInclude Include="Game\Misc\AutoRepair.hpp" />
 
     <ClInclude Include="Game\Misc\Aspect.hpp" />
 

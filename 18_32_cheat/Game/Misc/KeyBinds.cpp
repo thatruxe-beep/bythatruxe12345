@@ -37,6 +37,8 @@ namespace
 void KeyBinds::Update()
 {
     ProcessBind(g_cfg.godmode_bind, g_cfg.godmode);
+    ProcessBind(g_cfg.randomgodmode_bind, g_cfg.randomgodmode);
+    ProcessBind(g_cfg.doublejump_bind, g_cfg.doublejump);
     ProcessBind(g_cfg.nofall_bind, g_cfg.nofall);
     ProcessBind(g_cfg.fastbeg_bind, g_cfg.fastbeg);
     ProcessBind(g_cfg.wh_bind, g_cfg.wh);
@@ -50,7 +52,6 @@ void KeyBinds::Update()
     ProcessBind(g_cfg.customcolor_bind, g_cfg.customcolor);
     ProcessBind(g_cfg.fullbright_bind, g_cfg.fullbright);
     ProcessBind(g_cfg.rapidfire_bind, g_cfg.rapidfire);
-    ProcessBind(g_cfg.damager_bind, g_cfg.damager);
     ProcessBind(g_cfg.gamespeed_bind, g_cfg.gamespeed);
     ProcessBind(g_cfg.fastrot_bind, g_cfg.fastrot);
     ProcessBind(g_cfg.nobikefall_bind, g_cfg.nobikefall);
@@ -58,7 +59,10 @@ void KeyBinds::Update()
     ProcessBind(g_cfg.carfly_bind, g_cfg.carfly);
     ProcessBind(g_cfg.autoengine_bind, g_cfg.autoengine);
     ProcessBind(g_cfg.autounlock_bind, g_cfg.autounlock);
+    ProcessBind(g_cfg.autorepair_bind, g_cfg.autorepair);
+    ProcessBind(g_cfg.ram_bind, g_cfg.ram);
     ProcessBind(g_cfg.fastcross_bind, g_cfg.fastcross);
+    ProcessBind(g_cfg.fastzoom_bind, g_cfg.fastzoom);
     ProcessBind(g_cfg.norecoil_bind, g_cfg.norecoil);
     ProcessBind(g_cfg.nospread_bind, g_cfg.nospread);
     ProcessBind(g_cfg.trigger_bind, g_cfg.trigger);
