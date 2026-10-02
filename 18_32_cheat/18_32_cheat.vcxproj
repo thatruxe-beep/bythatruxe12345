@@ -491,7 +491,7 @@
 
   <Target Name="PreparePluginSdk" BeforeTargets="ClCompile" Condition="!Exists('$(PluginSdkDir)\output\lib\Plugin.lib')">
     <Message Text="Preparing Plugin-SDK in $(PluginSdkDir)..." Importance="high" />
-    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\tools\prepare-plugin-sdk.ps1&quot; -SdkDir &quot;$(PluginSdkDir)&quot; -MsBuildPath &quot;$(MSBuildBinPath)\MSBuild.exe&quot;" />
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\tools\prepare-plugin-sdk.ps1&quot; -SdkDir &quot;$(PluginSdkDir)&quot; -MsBuildPath &quot;$(MSBuildBinPath)\MSBuild.exe&quot; -PlatformToolset &quot;$(PlatformToolset)&quot;" />
     <Error Condition="!Exists('$(PluginSdkDir)\output\lib\Plugin.lib')" Text="Plugin-SDK build did not produce Plugin.lib" />
   </Target>
 

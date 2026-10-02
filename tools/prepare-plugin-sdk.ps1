@@ -3,7 +3,9 @@ param(
     [string]$SdkDir,
 
     [Parameter(Mandatory = $true)]
-    [string]$MsBuildPath
+    [string]$MsBuildPath,
+
+    [string]$PlatformToolset = "v145"
 )
 
 $ErrorActionPreference = "Stop"
@@ -57,7 +59,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Building Plugin-SDK static library..."
-& $MsBuildPath (Join-Path $SdkDir "plugin.sln") /m /t:Plugin_SA /p:Configuration=Release '/p:Platform=Mixed Platforms'
+& $MsBuildPath (Join-Path $SdkDir "plugin.sln") /m /t:Plugin_SA /p:Configuration=Release '/p:Platform=Mixed Platforms' "/p:PlatformToolset=$PlatformToolset"
 if ($LASTEXITCODE -ne 0) {
     throw "Plugin-SDK build failed with code $LASTEXITCODE"
 }

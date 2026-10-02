@@ -13,14 +13,15 @@ if (-not $msbuildCommand) {
 $msbuildPath = $msbuildCommand.Source
 $env:PLUGIN_SDK_DIR = $sdkDir
 
-& (Join-Path $root "tools\prepare-plugin-sdk.ps1") -SdkDir $sdkDir -MsBuildPath $msbuildPath
+$platformToolset = "v145"
+& (Join-Path $root "tools\prepare-plugin-sdk.ps1") -SdkDir $sdkDir -MsBuildPath $msbuildPath -PlatformToolset $platformToolset
 if ($LASTEXITCODE -ne 0) {
     throw "Plugin-SDK preparation failed with code $LASTEXITCODE"
 }
 
 $outDir = Join-Path $root "build"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-& $msbuildPath (Join-Path $root "18_32_cheat\18_32_cheat.vcxproj") /m /t:Build /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 "/p:OutDir=$outDir\" /p:TargetName=18_32_cheat
+& $msbuildPath (Join-Path $root "18_32_cheat\18_32_cheat.vcxproj") /m /t:Build /p:Configuration=Release /p:Platform=Win32 "/p:PlatformToolset=$platformToolset" "/p:OutDir=$outDir\" /p:TargetName=18_32_cheat
 if ($LASTEXITCODE -ne 0) {
     throw "18:32 cheat build failed with code $LASTEXITCODE"
 }
