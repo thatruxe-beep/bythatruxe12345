@@ -187,8 +187,7 @@ void Menu::DrawProfile()
 
             if (Button(tr("Контакты", "Contacts")))
             {
-                ShellExecuteA(NULL, "open", "https://t.me/gbr1337xd", NULL, NULL, SW_SHOWNORMAL);
-                ShellExecuteA(NULL, "open", "https://discord.com/users/1138590550635839488", NULL, NULL, SW_SHOWNORMAL);
+                ShellExecuteA(NULL, "open", "https://t.me/thatruxe", NULL, NULL, SW_SHOWNORMAL);
             }
 
             ImGui::Dummy(ImVec2(0, 8.0f * s));

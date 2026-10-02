@@ -169,23 +169,20 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         const float cursorScale = g_cfg.ui_scale / 100.0f;
         const ImVec2 origin((float)p.x, (float)p.y);
         const ImU32 accent = g_cfg.accent.to_color().u32();
-        ImVec2 cursorShape[] = {
-            origin,
-            origin + ImVec2(2.8f, 18.0f) * cursorScale,
-            origin + ImVec2(7.0f, 13.8f) * cursorScale,
-            origin + ImVec2(11.2f, 22.0f) * cursorScale,
-            origin + ImVec2(15.0f, 20.0f) * cursorScale,
-            origin + ImVec2(10.8f, 12.0f) * cursorScale,
-            origin + ImVec2(17.0f, 10.0f) * cursorScale
-        };
-        ImVec2 cursorShadow[7];
-        for (int i = 0; i < 7; ++i)
-        {
-            cursorShadow[i] = cursorShape[i] + ImVec2(2.0f, 2.0f) * cursorScale;
-        }
-        cursorList->AddConvexPolyFilled(cursorShadow, 7, IM_COL32(0, 0, 0, 150));
-        cursorList->AddConvexPolyFilled(cursorShape, 7, IM_COL32(25, 25, 25, 255));
-        cursorList->AddPolyline(cursorShape, 7, accent, true, 1.7f * cursorScale);
+
+        // Familiar Windows-style arrow with the menu accent as its fill.
+        const ImVec2 tip = origin;
+        const ImVec2 left = origin + ImVec2(1.0f, 19.0f) * cursorScale;
+        const ImVec2 right = origin + ImVec2(14.0f, 13.0f) * cursorScale;
+        const ImVec2 shadowOffset = ImVec2(2.0f, 2.0f) * cursorScale;
+        cursorList->AddTriangleFilled(tip + shadowOffset, left + shadowOffset, right + shadowOffset, IM_COL32(0, 0, 0, 145));
+        cursorList->AddLine(origin + ImVec2(5.2f, 13.7f) * cursorScale,
+            origin + ImVec2(11.0f, 23.0f) * cursorScale, IM_COL32(0, 0, 0, 180), 5.0f * cursorScale);
+        cursorList->AddTriangleFilled(tip, left, right, accent);
+        const ImVec2 arrowOutline[3] = { tip, left, right };
+        cursorList->AddPolyline(arrowOutline, 3, IM_COL32(15, 15, 15, 255), true, 1.4f * cursorScale);
+        cursorList->AddLine(origin + ImVec2(5.2f, 13.7f) * cursorScale,
+            origin + ImVec2(11.0f, 23.0f) * cursorScale, accent, 3.0f * cursorScale);
     }
 
     ImGui::EndFrame();

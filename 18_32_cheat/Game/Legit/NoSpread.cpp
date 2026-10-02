@@ -11,6 +11,13 @@ void NoSpread::Update()
     {
         for (int t = 22; t <= 38; t++)
         {
+            // MTA shotguns use their native pellet spread. NoSpread applies to
+            // every other firearm from pistols through heavy weapons.
+            if (t >= WEAPONTYPE_SHOTGUN && t <= WEAPONTYPE_SPAS12)
+            {
+                continue;
+            }
+
             for (int s = 0; s < 4; s++)
             {
                 if (CWeaponInfo* wi = CWeaponInfo::GetWeaponInfo((eWeaponType)t, (unsigned char)s))
