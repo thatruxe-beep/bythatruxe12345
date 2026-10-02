@@ -7,7 +7,6 @@ void Menu::DrawMisc()
     static int subtab = 0;
     static float runFade = 0.0f;
     static float speedFade = 0.0f;
-    static float ramFade = 0.0f;
 
     std::vector<std::string> items = {
         tr("Игрок", "Player"),
@@ -68,19 +67,6 @@ void Menu::DrawMisc()
             widget_alpha_mul = speedFade;
             if (SliderFloat(tr("Мощность", "Power"), &g_cfg.MaxSpd,
                 0.0f, 30.0f, "%.1f"))
-            {
-                SaveGeneralConfig();
-            }
-            widget_alpha_mul = previousAlpha;
-        }
-        BindableCheckbox("ram", tr("Таран", "Ram"), &g_cfg.ram, &g_cfg.ram_bind);
-        CreateAnimation(ramFade, g_cfg.ram, 0.3f, AnimLerp);
-        if (g_cfg.ram || ramFade > 0.02f)
-        {
-            const float previousAlpha = widget_alpha_mul;
-            widget_alpha_mul = ramFade;
-            if (SliderFloat(tr("Разгон", "Acceleration"), &g_cfg.rampower,
-                1.0f, 20.0f, "%.1f"))
             {
                 SaveGeneralConfig();
             }

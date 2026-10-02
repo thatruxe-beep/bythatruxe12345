@@ -2,34 +2,30 @@
 
 #include "Game/Rage/DoubleJump.hpp"
 
-void DoubleJump::Update()
+#include "Core/Runtime.hpp"
+#include "CPad.h"
+
+void DoubleJump::Run()
 {
-    static bool wasPressed = false;
-    static bool pendingBoost = false;
-
-    const bool pressed = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
-    CPed* ped = FindPlayerPed();
-
-    if (!g_cfg.doublejump || !ped || ped->m_pVehicle)
+    while (Runtime::IsRunning())
     {
-        pendingBoost = false;
-        wasPressed = pressed;
-        return;
-    }
+        if (g_cfg.doublejump
+            && (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0)
+        {
+            CPed* ped = FindPlayerPed();
+            if (ped && !ped->m_pVehicle)
+            {
+                // Keep presenting a fresh jump press to the game while the
+                // physical Space key is held. The worker interval is 2 ms as
+                // requested and does not modify the Windows key state.
+                if (CPad* pad = CPad::GetPad(0))
+                {
+                    pad->OldState.ButtonSquare = 0;
+                    pad->NewState.ButtonSquare = 255;
+                }
+            }
+        }
 
-    if (pressed && !wasPressed)
-    {
-        pendingBoost = true;
+        Sleep(2);
     }
-
-    // Apply after GTA has produced the real jump velocity, not on the input
-    // frame before the jump task starts.
-    if (pendingBoost && ped->m_vecMoveSpeed.z > 0.03f)
-    {
-        ped->m_vecMoveSpeed.x *= 2.0f;
-        ped->m_vecMoveSpeed.y *= 2.0f;
-        pendingBoost = false;
-    }
-
-    wasPressed = pressed;
 }

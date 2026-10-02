@@ -62,7 +62,6 @@ void KeyBinds::Update()
     ProcessBind(g_cfg.autorepair_bind, g_cfg.autorepair);
     ProcessBind(g_cfg.ram_bind, g_cfg.ram);
     ProcessBind(g_cfg.fastcross_bind, g_cfg.fastcross);
-    ProcessBind(g_cfg.fastzoom_bind, g_cfg.fastzoom);
     ProcessBind(g_cfg.norecoil_bind, g_cfg.norecoil);
     ProcessBind(g_cfg.nospread_bind, g_cfg.nospread);
     ProcessBind(g_cfg.trigger_bind, g_cfg.trigger);

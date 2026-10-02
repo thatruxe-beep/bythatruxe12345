@@ -7,6 +7,7 @@ void Menu::DrawRage()
     static float collisionFade = 0.0f;
     static float rapidFade = 0.0f;
     static float randomGodFade = 0.0f;
+    static float ramFade = 0.0f;
 
     ImGui::SetCursorPosX(0);
     ImGui::BeginChild("subtab_rage", ImVec2(), false);
@@ -31,6 +32,19 @@ void Menu::DrawRage()
     }
     BindableCheckbox("airbreak", tr("Аир-брейк", "Air brake"),
         &g_cfg.airbreake, &g_cfg.airbreake_bind);
+    BindableCheckbox("ram", tr("Таран", "Ram"), &g_cfg.ram, &g_cfg.ram_bind);
+    CreateAnimation(ramFade, g_cfg.ram, 0.3f, AnimLerp);
+    if (g_cfg.ram || ramFade > 0.02f)
+    {
+        const float previousAlpha = widget_alpha_mul;
+        widget_alpha_mul = ramFade;
+        if (SliderFloat(tr("Разгон", "Acceleration"), &g_cfg.rampower,
+            1.0f, 20.0f, "%.1f"))
+        {
+            SaveGeneralConfig();
+        }
+        widget_alpha_mul = previousAlpha;
+    }
     GroupEnd();
 
     ImGui::NextColumn();

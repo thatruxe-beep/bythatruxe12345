@@ -85,8 +85,7 @@ static std::string Bind_Display_Name(int i)
     case 34: return tr("Без урона от падения", "No fall damage");
     case 35: return tr("Рандом ГМ", "Random god mode");
     case 36: return tr("Двойной прыжок", "Double jump");
-    case 37: return tr("Быстрый зум", "Fast zoom");
-    case 38: return tr("ГМ авто", "Vehicle GM");
+    case 37: return tr("ГМ авто", "Vehicle GM");
     default: return "";
     }
 }
@@ -143,7 +142,6 @@ void Menu::DrawBinds()
         { &g_cfg.nofall_bind, &g_cfg.nofall, false },
         { &g_cfg.randomgodmode_bind, &g_cfg.randomgodmode, false },
         { &g_cfg.doublejump_bind, &g_cfg.doublejump, false },
-        { &g_cfg.fastzoom_bind, &g_cfg.fastzoom, false },
         { &g_cfg.autorepair_bind, &g_cfg.autorepair, true },
     };
 

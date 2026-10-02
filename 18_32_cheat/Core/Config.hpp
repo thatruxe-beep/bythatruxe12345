@@ -104,7 +104,6 @@ struct config_t
     bool fastcross = false;
     keybind_t fastcross_bind{};
     bool fastzoom = false;
-    keybind_t fastzoom_bind{};
     bool norecoil = false;
     keybind_t norecoil_bind{};
     bool nospread = false;

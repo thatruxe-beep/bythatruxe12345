@@ -189,7 +189,6 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
 
     GodMode::Update();
     RandomGodMode::Update();
-    DoubleJump::Update();
     NoFall::Update();
     FastRun::Update();
     SpeedHack::Update();

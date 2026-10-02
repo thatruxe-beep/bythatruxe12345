@@ -3,5 +3,5 @@
 class DoubleJump
 {
 public:
-    static void Update();
+    static void Run();
 };

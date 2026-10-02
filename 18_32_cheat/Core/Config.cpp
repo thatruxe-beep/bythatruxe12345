@@ -319,8 +319,6 @@ bool config_t::Save(const std::string& name)
     WriteInt(body, "fastcross_key", fastcross_bind.key);
     WriteInt(body, "fastcross_mode", fastcross_bind.mode);
     WriteBool(body, "fastzoom", fastzoom);
-    WriteInt(body, "fastzoom_key", fastzoom_bind.key);
-    WriteInt(body, "fastzoom_mode", fastzoom_bind.mode);
     WriteBool(body, "norecoil", norecoil);
     WriteInt(body, "norecoil_key", norecoil_bind.key);
     WriteInt(body, "norecoil_mode", norecoil_bind.mode);
@@ -551,8 +549,6 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "fastcross_key") { ReadInt(value, fastcross_bind.key); }
     else if (key == "fastcross_mode") { ReadInt(value, fastcross_bind.mode); }
     else if (key == "fastzoom") { ReadBool(value, fastzoom); }
-    else if (key == "fastzoom_key") { ReadInt(value, fastzoom_bind.key); }
-    else if (key == "fastzoom_mode") { ReadInt(value, fastzoom_bind.mode); }
     else if (key == "norecoil") { ReadBool(value, norecoil); }
     else if (key == "norecoil_key") { ReadInt(value, norecoil_bind.key); }
     else if (key == "norecoil_mode") { ReadInt(value, norecoil_bind.mode); }
