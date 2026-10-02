@@ -71,7 +71,9 @@ void Auth::Draw()
     const ImVec2 origin = ImGui::GetCursorScreenPos();
     const float width = ImGui::GetContentRegionAvailWidth();
     const License::Phase phase = License::GetPhase();
-    const bool canType = (phase == License::Phase::NeedKey || phase == License::Phase::Expired);
+    const bool canType = (phase == License::Phase::NeedKey
+                          || phase == License::Phase::Expired
+                          || phase == License::Phase::HwidMismatch);
 
     // -- шапка ----------------------------------------------------------
     const float logo = 44.0f * s;
@@ -86,6 +88,21 @@ void Auth::Draw()
     draw->AddText(g_fonts.main, 11.0f * s, ImVec2(textX, origin.y + 26.0f * s), U32(kMuted), "АКТИВАЦИЯ ЛИЦЕНЗИИ");
     draw->AddRectFilled(ImVec2(textX, origin.y + 44.0f * s),
                         ImVec2(textX + 34.0f * s, origin.y + 47.0f * s), U32(kAccent));
+
+    // HWID этого ПК — покупатель отправляет его продавцу для получения ключа.
+    {
+        char hwidText[16] = {};
+        License::GetMachineHwidText(hwidText, sizeof(hwidText));
+        char hwidLine[48] = {};
+        _snprintf_s(hwidLine, _TRUNCATE, "HWID: %s", hwidText);
+        const ImVec2 hwidSize = Measure(g_fonts.main, 11.0f * s, hwidLine);
+        draw->AddText(g_fonts.main, 11.0f * s,
+                      ImVec2(origin.x + width - hwidSize.x, origin.y + 2.0f * s),
+                      U32(kMuted), hwidLine);
+        draw->AddText(g_fonts.main, 10.0f * s,
+                      ImVec2(origin.x + width - hwidSize.x, origin.y + 16.0f * s),
+                      U32(kMuted), "отправьте продавцу");
+    }
 
     ImGui::SetCursorScreenPos(ImVec2(origin.x, origin.y + logo + 20.0f * s));
 
@@ -133,6 +150,11 @@ void Auth::Draw()
     else if (phase == License::Phase::Expired)
     {
         _snprintf_s(status, _TRUNCATE, "%s", "Срок ключа истёк — введите новый ключ");
+        statusColor = kWarning;
+    }
+    else if (phase == License::Phase::HwidMismatch)
+    {
+        _snprintf_s(status, _TRUNCATE, "%s", "Ключ привязан к другому компьютеру");
         statusColor = kWarning;
     }
     else if (phase == License::Phase::WrongKey)

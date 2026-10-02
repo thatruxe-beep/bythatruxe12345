@@ -161,6 +161,40 @@ namespace
     uint32_t g_current_minutes = 0;
     int64_t g_activation_unix = 0;
     int64_t g_exit_at_unix = 0; // 0 — таймер закрытия не запущен
+    uint64_t g_machine_hwid = 0;
+
+    // 40-битный HWID: серийный номер системного диска + имя ПК.
+    uint64_t ComputeMachineHwid()
+    {
+        DWORD volumeSerial = 0;
+        GetVolumeInformationW(L"C:\\", nullptr, 0, &volumeSerial, nullptr, nullptr, 0);
+
+        wchar_t computer[MAX_COMPUTERNAME_LENGTH + 2] = {};
+        DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
+        if (!GetComputerNameW(computer, &size))
+        {
+            size = 0;
+        }
+
+        uint64_t hash = 1469598103934665603ull; // FNV-1a 64
+        auto mix = [&hash](const void* data, size_t length) {
+            const unsigned char* bytes = static_cast<const unsigned char*>(data);
+            for (size_t i = 0; i < length; ++i)
+            {
+                hash ^= bytes[i];
+                hash *= 1099511628211ull;
+            }
+        };
+        mix(&volumeSerial, sizeof(volumeSerial));
+        mix(computer, size * sizeof(wchar_t));
+
+        return hash & 0xFFFFFFFFFFull; // 40 бит — ровно столько зашито в ключ v2
+    }
+
+    bool KeyMatchesThisPc(const license::KeyInfo& info)
+    {
+        return !info.hwid_bound || info.hwid == g_machine_hwid;
+    }
 
     int64_t ExpiryUnix()
     {
@@ -192,6 +226,13 @@ namespace
         if (!license::ParseKey(g_state.current_key, Secret(), info))
         {
             g_phase = static_cast<int>(License::Phase::NeedKey);
+            return;
+        }
+
+        // Ключ v2 работает только на том ПК, под который выдан.
+        if (!KeyMatchesThisPc(info))
+        {
+            g_phase = static_cast<int>(License::Phase::HwidMismatch);
             return;
         }
 
@@ -269,6 +310,7 @@ namespace License
     void Initialize()
     {
         std::lock_guard<std::mutex> lock(g_mutex);
+        g_machine_hwid = ComputeMachineHwid();
         LoadState();
 
         const int64_t now = NowUnix();
@@ -321,6 +363,14 @@ namespace License
             // Неверный ключ — игра закрывается.
             g_phase = static_cast<int>(Phase::WrongKey);
             g_exit_at_unix = now + kWrongKeyExitDelay;
+            return;
+        }
+
+        // Чужой ключ: привязан к другому компьютеру — не активируем,
+        // даём ввести правильный. Игра при этом не закрывается.
+        if (!KeyMatchesThisPc(info))
+        {
+            g_phase = static_cast<int>(Phase::HwidMismatch);
             return;
         }
 
@@ -444,6 +494,12 @@ namespace License
             out[written++] = key[i];
         }
         out[written] = '\0';
+    }
+
+    void GetMachineHwidText(char* out, size_t size)
+    {
+        _snprintf_s(out, size, _TRUNCATE, "%010llX",
+                    static_cast<unsigned long long>(g_machine_hwid));
     }
 
     int SecondsToExit()

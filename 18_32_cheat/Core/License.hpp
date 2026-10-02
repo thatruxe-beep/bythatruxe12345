@@ -14,11 +14,15 @@
 
 namespace license
 {
-    constexpr size_t kKeyCharCount = 32; // 8 групп по 4 символа
-    constexpr size_t kKeyDataBytes = 20; // 9 байт данных + 11 байт подписи
-    constexpr size_t kPayloadBytes = 9;  // версия + срок + серийник
+    constexpr size_t kKeyCharCount = 32;    // v1: 8 групп по 4 символа (универсальный)
+    constexpr size_t kKeyCharCountV2 = 40;  // v2: 10 групп по 4 (привязан к HWID)
+    constexpr size_t kKeyDataBytes = 20;    // v1: 9 байт данных + 11 байт подписи
+    constexpr size_t kKeyDataBytesV2 = 25;  // v2: 14 байт данных + 11 байт подписи
+    constexpr size_t kPayloadBytes = 9;     // v1: версия + срок + серийник
+    constexpr size_t kPayloadBytesV2 = 14;  // v2: версия + срок + серийник + HWID
     constexpr size_t kSignatureBytes = 11;
     constexpr uint8_t kKeyVersion = 1;
+    constexpr uint8_t kKeyVersionV2 = 2;
     constexpr size_t kMaxRecords = 64; // максимум активированных ключей в истории
 
     const char* Base32Alphabet()
@@ -275,6 +279,8 @@ namespace license
         bool valid = false;
         uint32_t minutes = 0; // срок действия в минутах
         uint32_t serial = 0;  // уникальный номер ключа
+        bool hwid_bound = false; // v2: ключ привязан к конкретному ПК
+        uint64_t hwid = 0;       // 40-битный HWID (если hwid_bound)
     };
 
     inline std::string NormalizeKeyText(const std::string& user_text)
@@ -295,18 +301,37 @@ namespace license
     inline bool ParseKey(const std::string& normalized, const uint8_t secret[32], KeyInfo& out)
     {
         out = KeyInfo();
-        if (normalized.size() != kKeyCharCount)
-            return false;
 
-        uint8_t data[kKeyDataBytes];
-        if (!Base32Decode(normalized, data, kKeyDataBytes))
+        size_t data_bytes = 0;
+        size_t payload_bytes = 0;
+        uint8_t expected_version = 0;
+
+        if (normalized.size() == kKeyCharCount)
+        {
+            data_bytes = kKeyDataBytes;
+            payload_bytes = kPayloadBytes;
+            expected_version = kKeyVersion;
+        }
+        else if (normalized.size() == kKeyCharCountV2)
+        {
+            data_bytes = kKeyDataBytesV2;
+            payload_bytes = kPayloadBytesV2;
+            expected_version = kKeyVersionV2;
+        }
+        else
+        {
             return false;
-        if (data[0] != kKeyVersion)
+        }
+
+        uint8_t data[kKeyDataBytesV2];
+        if (!Base32Decode(normalized, data, data_bytes))
+            return false;
+        if (data[0] != expected_version)
             return false;
 
         uint8_t mac[32];
-        HmacSha256(secret, 32, data, kPayloadBytes, mac);
-        if (std::memcmp(mac, data + kPayloadBytes, kSignatureBytes) != 0)
+        HmacSha256(secret, 32, data, payload_bytes, mac);
+        if (std::memcmp(mac, data + payload_bytes, kSignatureBytes) != 0)
             return false;
 
         out.minutes = static_cast<uint32_t>(data[1])
@@ -317,6 +342,15 @@ namespace license
                    | (static_cast<uint32_t>(data[6]) << 8)
                    | (static_cast<uint32_t>(data[7]) << 16)
                    | (static_cast<uint32_t>(data[8]) << 24);
+
+        if (expected_version == kKeyVersionV2)
+        {
+            out.hwid = 0;
+            for (int i = 0; i < 5; ++i)
+                out.hwid |= static_cast<uint64_t>(data[9 + i]) << (8 * i);
+            out.hwid_bound = true;
+        }
+
         out.valid = true;
         return true;
     }
@@ -441,11 +475,12 @@ namespace License
 {
     enum class Phase
     {
-        NeedKey,    // ключ ещё не введён
-        Authorized, // подписка действует
-        Expired,    // срок вышел — нужен новый ключ
-        WrongKey,   // введён неверный ключ — игра закроется
-        Blocked,    // перевод системного времени — игра закроется
+        NeedKey,      // ключ ещё не введён
+        Authorized,   // подписка действует
+        Expired,      // срок вышел — нужен новый ключ
+        WrongKey,     // введён неверный ключ — игра закроется
+        Blocked,      // перевод системного времени — игра закроется
+        HwidMismatch, // ключ привязан к другому компьютеру
     };
 
     void Initialize();                 // вызвать один раз при старте
@@ -459,6 +494,7 @@ namespace License
     void FormatRemaining(char* out, size_t size); // «29 дн. 04:12» / «04:59»
     void FormatExpiry(char* out, size_t size);    // «01.11.2026 17:30»
     void FormattedKey(char* out, size_t size);    // «XXXX-XXXX-…-XXXX»
+    void GetMachineHwidText(char* out, size_t size); // HWID этого ПК (10 hex)
     int SecondsToExit();               // -1 — таймер не запущен
     void EnforceExit();                // закрыть игру, если таймер истёк
 }
