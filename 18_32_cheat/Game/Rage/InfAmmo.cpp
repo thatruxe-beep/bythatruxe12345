@@ -11,28 +11,32 @@ namespace
 
     struct AmmoSnapshot
     {
-        eWeaponType type = WEAPON_UNARMED;
-        unsigned int total = 0;
-        bool captured = false;
+        eWeaponType type;
+        unsigned int total;
+        bool captured;
+
+        AmmoSnapshot()
+            : type(WEAPONTYPE_UNARMED), total(0), captured(false)
+        {
+        }
     };
 
-    std::array<AmmoSnapshot, kWeaponSlotCount> ammoSnapshots{};
+    std::array<AmmoSnapshot, kWeaponSlotCount> ammoSnapshots;
     CPed* snapshotOwner = nullptr;
 
     void ClearSnapshots()
     {
         for (auto& snapshot : ammoSnapshots)
         {
-            snapshot = AmmoSnapshot{};
+            snapshot = AmmoSnapshot();
         }
         snapshotOwner = nullptr;
     }
 
     bool UsesAmmo(eWeaponType type)
     {
-        const int value = static_cast<int>(type);
         // GTA SA firearms, explosives, detonator, spray can, extinguisher and camera.
-        return value >= 22 && value <= 43;
+        return type >= WEAPONTYPE_PISTOL && type <= WEAPONTYPE_CAMERA;
     }
 }
 
@@ -70,7 +74,7 @@ void InfAmmo::Update()
 
             if (!UsesAmmo(weapon.m_eWeaponType))
             {
-                snapshot = AmmoSnapshot{};
+                snapshot = AmmoSnapshot();
                 continue;
             }
 
