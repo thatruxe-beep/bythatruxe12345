@@ -274,9 +274,6 @@ bool config_t::Save(const std::string& name)
     WriteBool(body, "rapidfire", rapidfire);
     WriteInt(body, "rapidfire_key", rapidfire_bind.key);
     WriteInt(body, "rapidfire_mode", rapidfire_bind.mode);
-    WriteBool(body, "infammo", infammo);
-    WriteInt(body, "infammo_key", infammo_bind.key);
-    WriteInt(body, "infammo_mode", infammo_bind.mode);
 
     WriteInt(body, "wh_flags", (int)wh_flags);
     WriteColor(body, "whcol", whcol);
@@ -495,9 +492,6 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "rapidfire") { ReadBool(value, rapidfire); }
     else if (key == "rapidfire_key") { ReadInt(value, rapidfire_bind.key); }
     else if (key == "rapidfire_mode") { ReadInt(value, rapidfire_bind.mode); }
-    else if (key == "infammo") { ReadBool(value, infammo); }
-    else if (key == "infammo_key") { ReadInt(value, infammo_bind.key); }
-    else if (key == "infammo_mode") { ReadInt(value, infammo_bind.mode); }
 
     else if (key == "wh_flags") { int t = 15; if (ReadInt(value, t)) { wh_flags = (unsigned int)t; } }
     else if (key == "whcol") { ReadColor(value, whcol); }

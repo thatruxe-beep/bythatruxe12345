@@ -208,7 +208,7 @@ bool Menu::BeginCombo(const char* label, const char* preview_value, ImGuiComboFl
     CreateAnimation(mod.hovered_alpha, hovered, 1.0f, AnimLerp);
 
     float back_alpha = (205 + (25 * mod.hovered_alpha)) * alpha;
-    c_color back_clr = c_color(41, 41, 41).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
+    c_color back_clr = c_color(13, 29, 40).increase((int)(38 * mod.hovered_alpha)).new_alpha((int)back_alpha);
     draw_list->AddRectFilled(frame_bb.Min, frame_bb.Max, back_clr.u32(), 4.0f * s);
 
     if (label_size.x > 0)

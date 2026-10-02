@@ -15,7 +15,7 @@ struct keybind_t
 struct config_t
 {
     bool menu_open = false;
-    c_float_color accent = c_float_color(168, 168, 255);
+    c_float_color accent = c_float_color(35, 202, 238);
     int ui_scale = 100;
     int language = 0;
     bool showbinds = false;
@@ -71,8 +71,6 @@ struct config_t
     c_float_color carrgb1 = c_float_color(255, 255, 255);
     bool rapidfire = false;
     keybind_t rapidfire_bind{};
-    bool infammo = false;
-    keybind_t infammo_bind{};
     unsigned int wh_flags = 55;
     c_float_color whcol = c_float_color(168, 168, 255);
     c_float_color hpcol = c_float_color(110, 220, 110);

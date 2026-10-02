@@ -29,24 +29,23 @@ static std::string Bind_Display_Name(int i)
     case 15: return tr("Летающие машины", "Flying cars");
     case 16: return tr("Анти-колизия", "No collision");
     case 17: return tr("Чистка мира", "World Removals");
-    case 18: return tr("Бесконечные патроны", "Infinite ammo");
-    case 19: return tr("Свой цвет", "Custom color");
-    case 20: return tr("Фулбрайт", "Fullbright");
-    case 21: return tr("Аспект", "Aspect");
-    case 22: return tr("Автозавод", "Auto engine");
-    case 23: return tr("Автооткрытие", "Auto unlock");
-    case 24: return tr("Быстрый прицел", "Fast crosshair");
-    case 25: return tr("Без отдачи", "No recoil");
-    case 26: return tr("Без разброса", "No spread");
-    case 27: return tr("Фов", "Fov");
-    case 28: return tr("Рванка", "Rvanka");
-    case 29: return tr("Заморозить время", "Freeze time");
-    case 30: return tr("Туман", "Fog");
-    case 31: return tr("Солнце", "Sun");
-    case 32: return tr("Триггербот", "Triggerbot");
-    case 33: return tr("Без колизии камеры", "No camera collision");
-    case 34: return tr("Камхак", "Camhack");
-    case 35: return tr("Без урона от падения", "No fall damage");
+    case 18: return tr("Свой цвет", "Custom color");
+    case 19: return tr("Фулбрайт", "Fullbright");
+    case 20: return tr("Аспект", "Aspect");
+    case 21: return tr("Автозавод", "Auto engine");
+    case 22: return tr("Автооткрытие", "Auto unlock");
+    case 23: return tr("Быстрый прицел", "Fast crosshair");
+    case 24: return tr("Без отдачи", "No recoil");
+    case 25: return tr("Без разброса", "No spread");
+    case 26: return tr("Фов", "Fov");
+    case 27: return tr("Рванка", "Rvanka");
+    case 28: return tr("Заморозить время", "Freeze time");
+    case 29: return tr("Туман", "Fog");
+    case 30: return tr("Солнце", "Sun");
+    case 31: return tr("Триггербот", "Triggerbot");
+    case 32: return tr("Без колизии камеры", "No camera collision");
+    case 33: return tr("Камхак", "Camhack");
+    case 34: return tr("Без урона от падения", "No fall damage");
     default: return "";
     }
 }
@@ -84,7 +83,6 @@ void Menu::DrawBinds()
         { &g_cfg.carfly_bind, &g_cfg.carfly, true },
         { &g_cfg.nocol_bind, &g_cfg.nocol, false },
         { &g_cfg.removals_bind, &g_cfg.removals, false },
-        { &g_cfg.infammo_bind, &g_cfg.infammo, false },
         { &g_cfg.carcolor_bind, &g_cfg.carcolor, true },
         { &g_cfg.fullbright_bind, &g_cfg.fullbright, false },
         { &g_cfg.aspect_bind, &g_cfg.aspect, false },

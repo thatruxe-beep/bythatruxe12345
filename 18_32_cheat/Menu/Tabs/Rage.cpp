@@ -14,8 +14,6 @@ void Menu::DrawRage()
     GroupBegin(tr("Оружие", "Weapon"));
     BindableCheckbox("rapidfire", tr("Рапид", "Rapid fire"),
         &g_cfg.rapidfire, &g_cfg.rapidfire_bind);
-    BindableCheckbox("infammo", tr("Бесконечные патроны", "Infinite ammo"),
-        &g_cfg.infammo, &g_cfg.infammo_bind);
     GroupEnd();
 
     ImGui::NextColumn();

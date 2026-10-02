@@ -112,7 +112,6 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     KeyBinds::Update();
     World::Update();
     RapidFire::Update();
-    InfAmmo::Update();
     GameSpeed::Update();
     FastRot::Update();
     VehicleFlags::Update();
@@ -166,7 +165,17 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         POINT p;
         GetCursorPos(&p);
         ScreenToClient(hGameWindow, &p);
-        ImGui::GetForegroundDrawList()->AddTriangleFilled(ImVec2(p.x - 10, p.y), ImVec2(p.x, p.y + 10), ImVec2(p.x + 10, p.y), g_cfg.accent.to_color().as_imcolor());
+        ImDrawList* cursorList = ImGui::GetForegroundDrawList();
+        const float cursorScale = g_cfg.ui_scale / 100.0f;
+        const ImVec2 center((float)p.x, (float)p.y);
+        const ImU32 accent = g_cfg.accent.to_color().as_imcolor();
+        cursorList->AddCircleFilled(center + ImVec2(2.0f, 2.0f), 7.0f * cursorScale, IM_COL32(0, 0, 0, 125), 20);
+        cursorList->AddCircle(center, 6.0f * cursorScale, accent, 20, 1.8f * cursorScale);
+        cursorList->AddCircleFilled(center, 1.8f * cursorScale, IM_COL32(235, 250, 255, 255), 12);
+        cursorList->AddLine(center + ImVec2(-11.0f * cursorScale, 0), center + ImVec2(-7.5f * cursorScale, 0), accent, 1.5f * cursorScale);
+        cursorList->AddLine(center + ImVec2(7.5f * cursorScale, 0), center + ImVec2(11.0f * cursorScale, 0), accent, 1.5f * cursorScale);
+        cursorList->AddLine(center + ImVec2(0, -11.0f * cursorScale), center + ImVec2(0, -7.5f * cursorScale), accent, 1.5f * cursorScale);
+        cursorList->AddLine(center + ImVec2(0, 7.5f * cursorScale), center + ImVec2(0, 11.0f * cursorScale), accent, 1.5f * cursorScale);
     }
 
     ImGui::EndFrame();

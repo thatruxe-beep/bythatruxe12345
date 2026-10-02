@@ -227,7 +227,6 @@
 
     <ClCompile Include="Game\Legit\FastCrosshair.cpp" />
 
-    <ClCompile Include="Game\Rage\InfAmmo.cpp" />
 
     <ClCompile Include="Game\Rage\NoRecoil.cpp" />
 
@@ -396,7 +395,6 @@
 
     <ClInclude Include="Game\Legit\FastCrosshair.hpp" />
 
-    <ClInclude Include="Game\Rage\InfAmmo.hpp" />
 
     <ClInclude Include="Game\Rage\NoRecoil.hpp" />
 
