@@ -1,5 +1,6 @@
 #include "Game/Features.h"
 
+#include "Game/Rage/NewRapid.hpp"
 #include "Game/Rage/RapidFire.hpp"
 
 void RapidFire::Update()
@@ -41,6 +42,9 @@ void RapidFire::Update()
 
     if (!wasOn)
     {
+        // New Rapid may have scaled the same fields; undo that first so this
+        // snapshot captures true original values (and restores them later).
+        NewRapid::RestoreTable();
         each([&](CWeaponInfo& info, int type, int skill)
         {
             float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);

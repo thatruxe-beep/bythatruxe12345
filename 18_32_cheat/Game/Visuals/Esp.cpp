@@ -267,6 +267,16 @@ void Esp::Update()
                 { BONE_LEFTANKLE, BONE_LEFTFOOT },
             };
 
+            // Seated peds legitimately have knees and feet far in front of
+            // the standing bounding box (legs stretched to the pedals), which
+            // used to drop those segments. Widen the clip region and the
+            // length cap for peds in vehicles while keeping the strict
+            // garbage filtering for everyone else.
+            const bool inVehicle = ped->m_pVehicle != nullptr;
+            const float expandX = inVehicle ? boxWidth * 2.0f : boxWidth * 0.75f;
+            const float expandY = inVehicle ? boxHeight * 0.45f : boxHeight * 0.20f;
+            const float maxSegmentLength = inVehicle ? boxHeight * 1.5f : boxHeight * 0.8f;
+
             for (const auto& segment : segments)
             {
                 RwV3d firstWorld{};
@@ -280,11 +290,11 @@ void Esp::Update()
                     && WorldToScreen(secondWorld, secondScreen))
                 {
                     const ImVec2 skeletonMin(
-                        boxMin.x - boxWidth * 0.75f,
-                        boxMin.y - boxHeight * 0.20f);
+                        boxMin.x - expandX,
+                        boxMin.y - expandY);
                     const ImVec2 skeletonMax(
-                        boxMax.x + boxWidth * 0.75f,
-                        boxMax.y + boxHeight * 0.20f);
+                        boxMax.x + expandX,
+                        boxMax.y + expandY);
                     const float dx = secondScreen.x - firstScreen.x;
                     const float dy = secondScreen.y - firstScreen.y;
                     const float segmentLengthSq = dx * dx + dy * dy;
@@ -293,7 +303,7 @@ void Esp::Update()
                     // coordinates and used to create lines across the screen.
                     if (IsInside(firstScreen, skeletonMin, skeletonMax)
                         && IsInside(secondScreen, skeletonMin, skeletonMax)
-                        && segmentLengthSq <= boxHeight * boxHeight * 0.64f)
+                        && segmentLengthSq <= maxSegmentLength * maxSegmentLength)
                     {
                         DrawOutlinedLine(draw, firstScreen, secondScreen, skeletonColor, 1.0f);
                     }

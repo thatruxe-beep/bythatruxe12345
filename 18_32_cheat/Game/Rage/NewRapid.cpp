@@ -2,77 +2,130 @@
 
 #include "Game/Rage/NewRapid.hpp"
 
-#include "CWeapon.h"
-#include "CPad.h"
-
 #include <algorithm>
 #include <cmath>
 
-void NewRapid::Update()
+namespace
 {
-    static CWeapon* trackedWeapon = nullptr;
-    static unsigned int nextPulse = 0u;
+    // Six attack-loop fields of CWeaponInfo starting at m_fAnimLoopStart.
+    // Old Rapid Fire zeroes them for an instant re-arm; New Rapid scales the
+    // whole loop window by 1/multiplier so the weapon re-arms proportionally
+    // faster while keeping the normal shooting rhythm at multiplier 1.0.
+    constexpr int kFieldCount = 6;
+    constexpr int kFirstWeaponId = 22; // Colt 45
+    constexpr int kLastWeaponId = 38;  // Minigun
+    constexpr int kSkillCount = 4;
 
-    CPed* ped = FindPlayerPed();
-    if (!g_cfg.newrapid || !ped || ped->m_pVehicle)
-    {
-        trackedWeapon = nullptr;
-        nextPulse = 0u;
-        return;
-    }
+    float s_snapshot[kLastWeaponId - kFirstWeaponId + 1][kSkillCount][kFieldCount] = {};
+    bool s_applied = false;
+    float s_appliedScale = 1.0f;
 
-    CWeapon* weapon = ped->GetWeapon();
-    const int weaponType = weapon ? static_cast<int>(weapon->m_eWeaponType) : -1;
-    // Firearm IDs in GTA SA run from Colt 45 (22) through Minigun (38).
-    // Numeric bounds keep this compatible with plugin-sdk revisions that use
-    // different enum symbol prefixes.
-    if (!weapon || weaponType < 22 || weaponType > 38)
+    template <typename F>
+    void EachWeaponInfo(F&& callback)
     {
-        return;
-    }
-
-    if (weapon != trackedWeapon)
-    {
-        trackedWeapon = weapon;
-        nextPulse = 0u;
-    }
-
-    const float multiplier = std::clamp(
-        std::round(g_cfg.rapidfire_multiplier * 10.0f) / 10.0f,
-        1.0f, 10.0f);
-    CPad* pad = CPad::GetPad(0);
-    const bool firing = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0
-        || (pad && pad->NewState.ButtonCircle != 0);
-    if (multiplier <= 1.0f || !firing)
-    {
-        nextPulse = 0u;
-        return;
-    }
-
-    const unsigned int now = CTimer::m_snTimeInMilliseconds;
-    if (nextPulse != 0u && now < nextPulse)
-    {
-        return;
-    }
-
-    CWeaponInfo* info = CWeaponInfo::GetWeaponInfo(weapon->m_eWeaponType, 1);
-    float baseInterval = 180.0f;
-    if (info)
-    {
-        const float animationInterval = (info->m_fAnimLoopEnd - info->m_fAnimLoopStart) * 1000.0f;
-        if (std::isfinite(animationInterval) && animationInterval > 0.0f)
+        for (int type = kFirstWeaponId; type <= kLastWeaponId; ++type)
         {
-            baseInterval = std::clamp(animationInterval, 60.0f, 700.0f);
+            for (int skill = 0; skill < kSkillCount; ++skill)
+            {
+                if (CWeaponInfo* info = CWeaponInfo::GetWeaponInfo(
+                        static_cast<eWeaponType>(type), static_cast<unsigned char>(skill)))
+                {
+                    callback(*info, type - kFirstWeaponId, skill);
+                }
+            }
         }
     }
 
-    const float scaledInterval = baseInterval / multiplier;
-    const unsigned int interval = static_cast<unsigned int>(
-        scaledInterval < 5.0f ? 5.0f : scaledInterval);
+    void TakeSnapshot()
+    {
+        EachWeaponInfo([](CWeaponInfo& info, int type, int skill)
+        {
+            float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
+            for (int index = 0; index < kFieldCount; ++index)
+            {
+                s_snapshot[type][skill][index] = values[index];
+            }
+        });
+    }
 
-    // Re-arm the local weapon at a controlled cadence. Unlike the previous
-    // implementation this does not corrupt the global weapon animation table.
-    weapon->m_nTimeForNextShot = now;
-    weapon->m_nState = WEAPONSTATE_READY;
-    nextPulse = now + interval;
+    void RestoreSnapshot()
+    {
+        EachWeaponInfo([](CWeaponInfo& info, int type, int skill)
+        {
+            float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
+            for (int index = 0; index < kFieldCount; ++index)
+            {
+                values[index] = s_snapshot[type][skill][index];
+            }
+        });
+    }
+
+    void ApplyScale(float multiplier)
+    {
+        EachWeaponInfo([multiplier](CWeaponInfo& info, int type, int skill)
+        {
+            float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
+            for (int index = 0; index < kFieldCount; ++index)
+            {
+                values[index] = s_snapshot[type][skill][index] / multiplier;
+            }
+        });
+    }
+}
+
+void NewRapid::Update()
+{
+    // Old Rapid Fire owns the same table cells and has priority: it rewrites
+    // the fields to zero every frame, which would overwrite any scaled copy.
+    const bool enabled = g_cfg.newrapid && !g_cfg.rapidfire;
+    const float multiplier = std::clamp(
+        std::round(g_cfg.rapidfire_multiplier * 10.0f) / 10.0f, 1.0f, 10.0f);
+
+    if (!enabled)
+    {
+        if (s_applied)
+        {
+            RestoreSnapshot();
+            s_applied = false;
+            s_appliedScale = 1.0f;
+        }
+        return;
+    }
+
+    if (!s_applied)
+    {
+        // The table holds original values here: Old Rapid restores its own
+        // snapshot on disable and calls RestoreTable() before snapshotting,
+        // so this snapshot never captures scaled copies.
+        TakeSnapshot();
+        s_applied = true;
+        s_appliedScale = 1.0f;
+    }
+
+    if (multiplier == s_appliedScale)
+    {
+        return;
+    }
+
+    if (multiplier <= 1.0f)
+    {
+        RestoreSnapshot();
+    }
+    else
+    {
+        ApplyScale(multiplier);
+    }
+    s_appliedScale = multiplier;
+}
+
+void NewRapid::RestoreTable()
+{
+    // Called by Old Rapid Fire before it takes its own snapshot, so it never
+    // captures scaled values as "originals" (and later restores garbage).
+    if (s_applied)
+    {
+        RestoreSnapshot();
+        s_applied = false;
+        s_appliedScale = 1.0f;
+    }
 }
