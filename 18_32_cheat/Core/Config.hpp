@@ -76,6 +76,8 @@ struct config_t
     c_float_color carrgb1 = c_float_color(255, 255, 255);
     bool rapidfire = false;
     keybind_t rapidfire_bind{};
+    bool newrapid = false;
+    keybind_t newrapid_bind{};
     float rapidfire_multiplier = 1.0f;
     unsigned int wh_flags = 55;
     c_float_color whcol = c_float_color(168, 168, 255);

@@ -86,6 +86,7 @@ static std::string Bind_Display_Name(int i)
     case 35: return tr("Рандом ГМ", "Random god mode");
     case 36: return tr("Двойной прыжок", "Double jump");
     case 37: return tr("ГМ авто", "Vehicle GM");
+    case 38: return tr("Новый рапид", "New rapid");
     default: return "";
     }
 }
@@ -143,6 +144,7 @@ void Menu::DrawBinds()
         { &g_cfg.randomgodmode_bind, &g_cfg.randomgodmode, false },
         { &g_cfg.doublejump_bind, &g_cfg.doublejump, false },
         { &g_cfg.autorepair_bind, &g_cfg.autorepair, true },
+        { &g_cfg.newrapid_bind, &g_cfg.newrapid, false },
     };
 
     static const int kBindCount = sizeof(kBinds) / sizeof(kBinds[0]);

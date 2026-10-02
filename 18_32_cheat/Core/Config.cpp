@@ -281,6 +281,9 @@ bool config_t::Save(const std::string& name)
     WriteBool(body, "rapidfire", rapidfire);
     WriteInt(body, "rapidfire_key", rapidfire_bind.key);
     WriteInt(body, "rapidfire_mode", rapidfire_bind.mode);
+    WriteBool(body, "newrapid", newrapid);
+    WriteInt(body, "newrapid_key", newrapid_bind.key);
+    WriteInt(body, "newrapid_mode", newrapid_bind.mode);
     WriteFloat(body, "rapidfire_multiplier", rapidfire_multiplier);
 
     WriteInt(body, "wh_flags", (int)wh_flags);
@@ -511,6 +514,9 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "rapidfire") { ReadBool(value, rapidfire); }
     else if (key == "rapidfire_key") { ReadInt(value, rapidfire_bind.key); }
     else if (key == "rapidfire_mode") { ReadInt(value, rapidfire_bind.mode); }
+    else if (key == "newrapid") { ReadBool(value, newrapid); }
+    else if (key == "newrapid_key") { ReadInt(value, newrapid_bind.key); }
+    else if (key == "newrapid_mode") { ReadInt(value, newrapid_bind.mode); }
     else if (key == "rapidfire_multiplier") { ReadFloat(value, rapidfire_multiplier); }
 
     else if (key == "wh_flags") { int t = 15; if (ReadInt(value, t)) { wh_flags = (unsigned int)t; } }

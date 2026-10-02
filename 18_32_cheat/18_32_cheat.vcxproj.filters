@@ -339,6 +339,12 @@
       <Filter>Game\Rage</Filter>
 
     </ClCompile>
+
+    <ClCompile Include="Game\Rage\NewRapid.cpp">
+
+      <Filter>Game\Rage</Filter>
+
+    </ClCompile>
     <ClCompile Include="Game\Misc\AutoRepair.cpp">
 
       <Filter>Game\Misc</Filter>
@@ -790,6 +796,12 @@
     </ClInclude>
 
     <ClInclude Include="Game\Rage\RapidFire.hpp">
+
+      <Filter>Game\Rage</Filter>
+
+    </ClInclude>
+
+    <ClInclude Include="Game\Rage\NewRapid.hpp">
 
       <Filter>Game\Rage</Filter>
 

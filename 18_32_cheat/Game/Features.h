@@ -30,6 +30,7 @@
 #include "Game/Common.hpp"
 
 #include "Game/Rage/RapidFire.hpp"
+#include "Game/Rage/NewRapid.hpp"
 #include "Game/Rage/RandomGodMode.hpp"
 #include "Game/Rage/DoubleJump.hpp"
 #include "Game/Legit/FastCrosshair.hpp"

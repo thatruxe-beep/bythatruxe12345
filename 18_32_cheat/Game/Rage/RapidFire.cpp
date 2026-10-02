@@ -2,60 +2,64 @@
 
 #include "Game/Rage/RapidFire.hpp"
 
-#include "CWeapon.h"
-
-#include <algorithm>
-#include <cmath>
-
 void RapidFire::Update()
 {
-    static CWeapon* trackedWeapon = nullptr;
-    static unsigned int adjustedDeadline = 0u;
+    static bool wasOn = false;
+    static float snapshot[17][4][6]{};
+
+    auto each = [](auto&& callback)
+    {
+        for (int type = 22; type <= 38; ++type)
+        {
+            for (int skill = 0; skill < 4; ++skill)
+            {
+                if (CWeaponInfo* info = CWeaponInfo::GetWeaponInfo(
+                    static_cast<eWeaponType>(type), static_cast<unsigned char>(skill)))
+                {
+                    callback(*info, type - 22, skill);
+                }
+            }
+        }
+    };
 
     if (!g_cfg.rapidfire)
     {
-        trackedWeapon = nullptr;
-        adjustedDeadline = 0u;
+        if (wasOn)
+        {
+            each([&](CWeaponInfo& info, int type, int skill)
+            {
+                float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
+                for (int index = 0; index < 6; ++index)
+                {
+                    values[index] = snapshot[type][skill][index];
+                }
+            });
+            wasOn = false;
+        }
         return;
     }
 
-    CPed* ped = FindPlayerPed();
-    if (!ped)
+    if (!wasOn)
     {
-        return;
+        each([&](CWeaponInfo& info, int type, int skill)
+        {
+            float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
+            for (int index = 0; index < 6; ++index)
+            {
+                snapshot[type][skill][index] = values[index];
+            }
+        });
+        wasOn = true;
     }
 
-    CWeapon* weapon = ped->GetWeapon();
-    if (!weapon)
+    // Restore the original instant rapid-fire implementation requested by the
+    // user. Zeroing all six attack-loop fields was the previously working path.
+    each([](CWeaponInfo& info, int, int)
     {
-        return;
-    }
-
-    if (weapon != trackedWeapon)
-    {
-        trackedWeapon = weapon;
-        adjustedDeadline = weapon->m_nTimeForNextShot;
-    }
-
-    const unsigned int now = CTimer::m_snTimeInMilliseconds;
-    const unsigned int deadline = weapon->m_nTimeForNextShot;
-
-    // GTA writes a fresh absolute deadline after every shot. Shorten only
-    // that newly-created interval; repeatedly dividing it every frame makes
-    // the weapon state invalid and can prevent firing entirely.
-    if (deadline != adjustedDeadline && deadline > now)
-    {
-        const float multiplier = std::clamp(
-            std::round(g_cfg.rapidfire_multiplier * 10.0f) / 10.0f,
-            1.0f, 10.0f);
-        const unsigned int remaining = deadline - now;
-        const unsigned int shortened = static_cast<unsigned int>(
-            std::lround(static_cast<float>(remaining) / multiplier));
-        adjustedDeadline = now + (shortened == 0u ? 1u : shortened);
-        weapon->m_nTimeForNextShot = adjustedDeadline;
-    }
-    else
-    {
-        adjustedDeadline = deadline;
-    }
+        float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
+        for (int index = 0; index < 6; ++index)
+        {
+            values[index] = 0.0f;
+        }
+    });
 }

@@ -57,6 +57,7 @@ LRESULT WINAPI WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM l
 {
     WndProcCallGuard callGuard;
     WNDPROC original = oWndProc;
+    DoubleJump::HandleKeyMessage(message, wParam);
     const bool shuttingDown = InterlockedCompareExchange(&sShuttingDown, 0, 0) != 0;
     const bool is_open = !shuttingDown && (menu && menu->GetState());
 
@@ -167,13 +168,13 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     KeyBinds::Update();
     World::Update();
     RapidFire::Update();
+    NewRapid::Update();
     GameSpeed::Update();
     FastRot::Update();
     VehicleFlags::Update();
     NoBikeFall::Update();
     Aspect::Update();
     Fov::Update();
-    FastZoom::Update();
     AutoEngine::Update();
     AutoUnlock::Update();
     AutoRepair::Update();

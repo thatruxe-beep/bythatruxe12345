@@ -29,6 +29,10 @@ void AirBreak::Run()
             TheCamera.m_aCams[TheCamera.m_nActiveCam].m_fFOV = v;
         }
 
+        // Camera modes can rewrite FOV between render frames. Updating the
+        // click-to-zoom state from this 1 ms worker prevents visible shaking.
+        FastZoom::Update();
+
         if (!GetModuleHandleA("client.dll"))
         {
             Sleep(100);

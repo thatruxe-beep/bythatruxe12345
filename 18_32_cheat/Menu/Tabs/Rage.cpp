@@ -15,10 +15,12 @@ void Menu::DrawRage()
     ImGui::SetColumnOffset(1, 270.0f * GetScale());
 
     GroupBegin(tr("Оружие", "Weapon"));
-    BindableCheckbox("rapidfire", tr("Новый рапид", "New rapid"),
+    BindableCheckbox("rapidfire", tr("Старый рапид", "Old rapid fire"),
         &g_cfg.rapidfire, &g_cfg.rapidfire_bind);
-    CreateAnimation(rapidFade, g_cfg.rapidfire, 0.3f, AnimLerp);
-    if (g_cfg.rapidfire || rapidFade > 0.02f)
+    BindableCheckbox("newrapid", tr("Новый рапид", "New rapid"),
+        &g_cfg.newrapid, &g_cfg.newrapid_bind);
+    CreateAnimation(rapidFade, g_cfg.newrapid, 0.3f, AnimLerp);
+    if (g_cfg.newrapid || rapidFade > 0.02f)
     {
         const float previousAlpha = widget_alpha_mul;
         widget_alpha_mul = rapidFade;

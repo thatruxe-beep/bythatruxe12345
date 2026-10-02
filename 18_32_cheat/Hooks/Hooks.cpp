@@ -24,6 +24,7 @@ namespace
     {
         g_cfg.menu_open = false;
         g_cfg.rapidfire = false;
+        g_cfg.newrapid = false;
         g_cfg.gamespeed = false;
         g_cfg.fastrot = false;
         g_cfg.waterdrive = false;
@@ -61,6 +62,7 @@ namespace
 
         World::Update();
         RapidFire::Update();
+        NewRapid::Update();
         GameSpeed::Update();
         FastRot::Update();
         VehicleFlags::Update();
