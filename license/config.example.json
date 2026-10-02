@@ -1,0 +1,15 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8000
+  },
+  "database": "licenses.db",
+  "admin_token": "change-me-1832",
+  "binding": {
+    "hwid": false
+  },
+  "telegram": {
+    "bot_token": "1234567890:AAF-your-bot-token-from-BotFather",
+    "admin_ids": [123456789]
+  }
+}
