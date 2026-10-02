@@ -118,7 +118,7 @@
 
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
 
-      <DisableSpecificWarnings>4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4828;%(DisableSpecificWarnings)</DisableSpecificWarnings>
 
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
 
@@ -158,7 +158,7 @@
 
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
 
-      <DisableSpecificWarnings>4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4828;%(DisableSpecificWarnings)</DisableSpecificWarnings>
 
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
 
