@@ -21,8 +21,11 @@ void NewRapid::Update()
     }
 
     CWeapon* weapon = ped->GetWeapon();
-    if (!weapon || weapon->m_eWeaponType < WEAPON_PISTOL
-        || weapon->m_eWeaponType > WEAPON_MINIGUN)
+    const int weaponType = weapon ? static_cast<int>(weapon->m_eWeaponType) : -1;
+    // Firearm IDs in GTA SA run from Colt 45 (22) through Minigun (38).
+    // Numeric bounds keep this compatible with plugin-sdk revisions that use
+    // different enum symbol prefixes.
+    if (!weapon || weaponType < 22 || weaponType > 38)
     {
         return;
     }
