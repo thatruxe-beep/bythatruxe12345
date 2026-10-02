@@ -165,24 +165,14 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         POINT p;
         GetCursorPos(&p);
         ScreenToClient(hGameWindow, &p);
-        ImDrawList* cursorList = ImGui::GetForegroundDrawList();
         const float cursorScale = g_cfg.ui_scale / 100.0f;
         const ImVec2 origin((float)p.x, (float)p.y);
-        const ImU32 accent = g_cfg.accent.to_color().u32();
+        const ImU32 accent = static_cast<ImU32>(g_cfg.accent.to_color().as_imcolor());
 
-        // Familiar Windows-style arrow with the menu accent as its fill.
-        const ImVec2 tip = origin;
-        const ImVec2 left = origin + ImVec2(1.0f, 19.0f) * cursorScale;
-        const ImVec2 right = origin + ImVec2(14.0f, 13.0f) * cursorScale;
-        const ImVec2 shadowOffset = ImVec2(2.0f, 2.0f) * cursorScale;
-        cursorList->AddTriangleFilled(tip + shadowOffset, left + shadowOffset, right + shadowOffset, IM_COL32(0, 0, 0, 145));
-        cursorList->AddLine(origin + ImVec2(5.2f, 13.7f) * cursorScale,
-            origin + ImVec2(11.0f, 23.0f) * cursorScale, IM_COL32(0, 0, 0, 180), 5.0f * cursorScale);
-        cursorList->AddTriangleFilled(tip, left, right, accent);
-        const ImVec2 arrowOutline[3] = { tip, left, right };
-        cursorList->AddPolyline(arrowOutline, 3, IM_COL32(15, 15, 15, 255), true, 1.4f * cursorScale);
-        cursorList->AddLine(origin + ImVec2(5.2f, 13.7f) * cursorScale,
-            origin + ImVec2(11.0f, 23.0f) * cursorScale, accent, 3.0f * cursorScale);
+        // Use ImGui's standard arrow geometry (matching a regular system cursor)
+        // and only replace its white fill with the configured accent color.
+        ImGui::RenderMouseCursor(ImGui::GetForegroundDrawList(), origin, cursorScale,
+            ImGuiMouseCursor_Arrow, accent, IM_COL32(15, 15, 15, 255), IM_COL32(0, 0, 0, 80));
     }
 
     ImGui::EndFrame();

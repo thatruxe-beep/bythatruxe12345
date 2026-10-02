@@ -333,9 +333,6 @@ void Menu::DrawBackground()
     const int alpha8 = (int)(255.0f * a);
     const ImVec2 pos = GetWindowPos();
     const ImVec2 size(900.0f * s, 535.0f * s);
-    const c_color accent = g_cfg.accent.to_color();
-    const ImU32 accentColor = accent.new_alpha(alpha8).u32();
-
     // Layout and palette follow menu #8 (menu phobia): 161px rail, 838x535 shell.
     list->AddRectFilled(pos + ImVec2(5.0f * s, 7.0f * s), pos + size + ImVec2(8.0f * s, 10.0f * s),
         IM_COL32(0, 0, 0, (int)(105.0f * a)), 12.0f * s);
@@ -424,7 +421,7 @@ void Menu::DrawTabs()
         if (tab_selector == i)
         {
             list->AddRectFilled(tmin, tmax,
-                accent.new_alpha((int)(210 * info.alpha * a)).u32(), 5.0f * s);
+                static_cast<ImU32>(accent.new_alpha((int)(210 * info.alpha * a)).as_imcolor()), 5.0f * s);
         }
         else
         {
@@ -435,7 +432,9 @@ void Menu::DrawTabs()
         const int value = tab_selector == i ? 245 : (int)(145.0f + 90.0f * info.hovered_alpha);
         const ImU32 textColor = IM_COL32(value, value, value, (int)(255 * a));
         DrawNavigationGlyph(list, i, tmin + ImVec2(18.0f * s, 16.0f * s),
-            tab_selector == i ? accent.new_alpha((int)(255 * a)).u32() : textColor, s);
+            tab_selector == i
+                ? static_cast<ImU32>(accent.new_alpha((int)(255 * a)).as_imcolor())
+                : textColor, s);
         list->AddText(tmin + ImVec2(35.0f * s, 8.0f * s), textColor, names[i].c_str());
     }
 
@@ -484,7 +483,7 @@ void Menu::DrawSubTabs(int& selector, const std::vector<std::string>& tabs)
         if (selector == i)
         {
             draw_list->AddRectFilled(bb.Min, bb.Max,
-                accent.new_alpha((int)(210 * a * info.alpha)).u32(), 4.0f * s);
+                static_cast<ImU32>(accent.new_alpha((int)(210 * a * info.alpha)).as_imcolor()), 4.0f * s);
         }
 
         float rgb = selector == i ? 255 : 150 + 105 * info.hovered_alpha;
