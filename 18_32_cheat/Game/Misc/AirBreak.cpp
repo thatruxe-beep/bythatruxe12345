@@ -11,7 +11,7 @@ namespace
 
 void AirBreak::Run()
 {
-    for (;;)
+    while (Runtime::IsRunning())
     {
         if (g_cfg.nocamcol)
         {

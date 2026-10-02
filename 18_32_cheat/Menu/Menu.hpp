@@ -95,6 +95,7 @@ public:
     float GetScale();
     void ApplyScale();
     void InitTextures();
+    void ReleaseTextures();
     void WindowBegin();
     void WindowEnd();
     void DrawBackground();

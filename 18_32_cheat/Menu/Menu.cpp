@@ -227,6 +227,16 @@ void Menu::InitTextures()
     }
 }
 
+void Menu::ReleaseTextures()
+{
+    if (logo_texture) { logo_texture->Release(); logo_texture = nullptr; }
+    if (kb_texture) { kb_texture->Release(); kb_texture = nullptr; }
+    for (auto& texture : icon_textures)
+    {
+        if (texture) { texture->Release(); texture = nullptr; }
+    }
+}
+
 void Menu::WindowBegin()
 {
     const float s = GetScale();

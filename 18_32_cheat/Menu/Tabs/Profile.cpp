@@ -1,6 +1,7 @@
 #include "Menu/Menu.hpp"
 
 #include "Game/Features.h"
+#include "Core/Runtime.hpp"
 
 #include "Gfx/Fonts.hpp"
 
@@ -188,6 +189,13 @@ void Menu::DrawProfile()
             {
                 ShellExecuteA(NULL, "open", "https://t.me/gbr1337xd", NULL, NULL, SW_SHOWNORMAL);
                 ShellExecuteA(NULL, "open", "https://discord.com/users/1138590550635839488", NULL, NULL, SW_SHOWNORMAL);
+            }
+
+            ImGui::Dummy(ImVec2(0, 8.0f * s));
+            ImGui::SetCursorPosX(ccx - 128.0f * s);
+            if (Button(tr("Выгрузить чит", "Unload cheat")))
+            {
+                Runtime::RequestUnload();
             }
         }
 

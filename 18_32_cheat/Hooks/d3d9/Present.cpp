@@ -29,6 +29,16 @@ static LPVOID sPresentTarget = nullptr;
 static WNDPROC oWndProc = nullptr;
 static bool imgui_initialized = false;
 static HWND hGameWindow = nullptr;
+static volatile LONG sPresentCalls = 0;
+
+namespace
+{
+    struct PresentCallGuard
+    {
+        PresentCallGuard() { InterlockedIncrement(&sPresentCalls); }
+        ~PresentCallGuard() { InterlockedDecrement(&sPresentCalls); }
+    };
+}
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -86,6 +96,8 @@ static void InitImGui(IDirect3DDevice9* device)
 
 HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, const RECT* destRect, HWND destWindowOverride, const RGNDATA* dirtyRegion)
 {
+    PresentCallGuard callGuard;
+
     if (!imgui_initialized)
     {
         InitImGui(self);
@@ -124,7 +136,7 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     SpeedHack::Update();
     Blur::NewFrame();
 
-    if (GetAsyncKeyState(VK_DELETE) & 1)
+    if (GetAsyncKeyState(VK_INSERT) & 1)
     {
         menu->ToggleState();
 
@@ -204,9 +216,50 @@ void Present::RemoveHook()
         MessageBoxA(NULL, "Failed to disable hook on function d3d9/present", "18:32 cheat", MB_OK | MB_ICONERROR);
     }
 
+    for (int i = 0; i < 2000 && InterlockedCompareExchange(&sPresentCalls, 0, 0) != 0; ++i)
+    {
+        Sleep(1);
+    }
+
     status = MH_RemoveHook(sPresentTarget);
-    if (status != MH_OK)
+    if (status != MH_OK && status != MH_ERROR_NOT_CREATED)
     {
         MessageBoxA(NULL, "Failed to remove hook on function d3d9/present", "18:32 cheat", MB_OK | MB_ICONERROR);
     }
+    sPresentTarget = nullptr;
+    oPresent = nullptr;
+}
+
+void Present::Shutdown()
+{
+    if (!imgui_initialized)
+    {
+        return;
+    }
+
+    if (hGameWindow && oWndProc)
+    {
+        const auto current = reinterpret_cast<WNDPROC>(GetWindowLongPtrW(hGameWindow, GWLP_WNDPROC));
+        if (current == WndProcHandler)
+        {
+            SetWindowLongPtrW(hGameWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(oWndProc));
+        }
+    }
+
+    if (menu)
+    {
+        menu->ReleaseTextures();
+    }
+    Blur::ClearTextures();
+
+    if (ImGui::GetCurrentContext())
+    {
+        ImGui_ImplDX9_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+    }
+
+    oWndProc = nullptr;
+    hGameWindow = nullptr;
+    imgui_initialized = false;
 }

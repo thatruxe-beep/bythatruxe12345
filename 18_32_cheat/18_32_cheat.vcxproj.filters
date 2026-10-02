@@ -490,6 +490,12 @@
 
     </ClCompile>
 
+    <ClCompile Include="Core\Runtime.cpp">
+
+      <Filter>Core</Filter>
+
+    </ClCompile>
+
     <ClCompile Include="Core\Color.cpp">
 
       <Filter>Core</Filter>
@@ -833,6 +839,12 @@
     <ClInclude Include="Menu\Binds.hpp">
 
       <Filter>Menu</Filter>
+
+    </ClInclude>
+
+    <ClInclude Include="Core\Runtime.hpp">
+
+      <Filter>Core</Filter>
 
     </ClInclude>
 

@@ -284,6 +284,8 @@
 
     <ClCompile Include="Core\Color.cpp" />
 
+    <ClCompile Include="Core\Runtime.cpp" />
+
     <ClCompile Include="Core\Config.cpp" />
 
     <ClCompile Include="Gfx\Blur.cpp" />
@@ -423,6 +425,8 @@
     <ClInclude Include="Menu\Binds.hpp" />
 
     <ClInclude Include="Core\Color.hpp" />
+
+    <ClInclude Include="Core\Runtime.hpp" />
 
     <ClInclude Include="Core\Config.hpp" />
 
