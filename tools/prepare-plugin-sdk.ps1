@@ -9,6 +9,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# Generated Plugin-SDK projects reference $(PLUGIN_SDK_DIR). Export it for
+# premake and the nested MSBuild process, including builds started from VS.
+$env:PLUGIN_SDK_DIR = $SdkDir
 $commit = "5da18b6f1956bb20bdfa39dcb07c44863ce26c81"
 $pluginLib = Join-Path $SdkDir "output\lib\Plugin.lib"
 
@@ -59,7 +62,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Building Plugin-SDK static library..."
-& $MsBuildPath (Join-Path $SdkDir "plugin.sln") /m /t:Plugin_SA /p:Configuration=Release '/p:Platform=Mixed Platforms' "/p:PlatformToolset=$PlatformToolset"
+& $MsBuildPath (Join-Path $SdkDir "plugin.sln") /m /t:Plugin_SA /p:Configuration=Release '/p:Platform=Mixed Platforms' "/p:PlatformToolset=$PlatformToolset" "/p:PLUGIN_SDK_DIR=$SdkDir"
 if ($LASTEXITCODE -ne 0) {
     throw "Plugin-SDK build failed with code $LASTEXITCODE"
 }
