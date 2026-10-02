@@ -419,9 +419,10 @@ void Menu::DrawTabs()
         const ImVec2 tmax = tmin + ImVec2(150.0f * s, 38.0f * s);
         const int fillAlpha = (int)((25.0f + 150.0f * info.alpha + 35.0f * info.hovered_alpha) * a);
         list->AddRectFilled(tmin, tmax, IM_COL32(15, 39, 52, fillAlpha), 6.0f * s);
-        list->AddRect(tmin, tmax, tab_selector == i
-            ? accent.new_alpha((int)(220 * a)).as_imcolor()
-            : IM_COL32(27, 61, 76, (int)(210 * a)), 6.0f * s);
+        const ImU32 tabBorderColor = tab_selector == i
+            ? accent.new_alpha((int)(220 * a)).u32()
+            : IM_COL32(27, 61, 76, (int)(210 * a));
+        list->AddRect(tmin, tmax, tabBorderColor, 6.0f * s);
         if (tab_selector == i)
         {
             list->AddRectFilled(tmin + ImVec2(12.0f * s, 35.0f * s), tmax - ImVec2(12.0f * s, 0),
@@ -430,8 +431,10 @@ void Menu::DrawTabs()
 
         const int textValue = (int)(150.0f + 95.0f * (std::max)(info.alpha, info.hovered_alpha));
         const ImU32 tint = IM_COL32(textValue, textValue, textValue, (int)(255 * a));
-        DrawNavigationGlyph(list, i, tmin + ImVec2(23.0f * s, 19.0f * s),
-            tab_selector == i ? accent.new_alpha((int)(255 * a)).as_imcolor() : tint, s);
+        const ImU32 glyphColor = tab_selector == i
+            ? accent.new_alpha((int)(255 * a)).u32()
+            : tint;
+        DrawNavigationGlyph(list, i, tmin + ImVec2(23.0f * s, 19.0f * s), glyphColor, s);
         list->AddText(tmin + ImVec2(43.0f * s, 11.0f * s), tint, names[i].c_str());
     }
 
