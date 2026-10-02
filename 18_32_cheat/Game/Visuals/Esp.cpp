@@ -17,7 +17,7 @@
 namespace
 {
     constexpr float kMaximumHealth = 300.0f;
-    constexpr float kMaximumArmor = 128.0f;
+    constexpr float kMaximumArmor = 400.0f;
 
     bool WorldToScreen(const RwV3d& world, ImVec2& screen)
     {
@@ -42,10 +42,20 @@ namespace
     }
 
     void DrawCenteredText(ImDrawList* draw, float centerX, float y,
-        ImU32 color, const char* text)
+        ImU32 color, const char* text, bool background = false)
     {
         const ImVec2 size = ImGui::CalcTextSize(text);
         const ImVec2 pos(centerX - size.x * 0.5f, y);
+
+        if (background)
+        {
+            const ImVec2 padding(4.0f, 2.0f);
+            draw->AddRectFilled(pos - padding, pos + size + padding,
+                IM_COL32(8, 9, 12, 210), 3.0f);
+            draw->AddRect(pos - padding, pos + size + padding,
+                IM_COL32(255, 255, 255, 35), 3.0f);
+        }
+
         draw->AddText(pos + ImVec2(1.0f, 1.0f), IM_COL32(0, 0, 0, 230), text);
         draw->AddText(pos, color, text);
     }
@@ -79,7 +89,6 @@ void Esp::Update()
     const ImU32 tracerColor = static_cast<ImU32>(g_cfg.snapcol.to_color().as_imcolor());
     const ImU32 backgroundColor = IM_COL32(0, 0, 0, 190);
 
-    CMatrix& camera = TheCamera.m_mCameraMatrix;
     const int poolSize = CPools::ms_pPedPool->m_nSize;
 
     for (int i = 0; i < poolSize; ++i)
@@ -101,26 +110,41 @@ void Esp::Update()
             continue;
         }
 
-        const float cameraDepth = delta.x * camera.at.x
-            + delta.y * camera.at.y + delta.z * camera.at.z;
-
-        if (cameraDepth <= 0.0f)
+        // CalcScreenCoors performs the real active-camera visibility test. A
+        // local-player direction dot product is incorrect for side angles and
+        // for sniper/scoped camera modes, and used to make valid ESP vanish.
+        float feetZ = position.z;
+        float fallbackHeadZ = position.z + 1.8f;
+        if (CColModel* collision = ped->GetColModel())
         {
-            continue;
+            const float minimumZ = collision->m_boundBox.m_vecMin.z;
+            const float maximumZ = collision->m_boundBox.m_vecMax.z;
+            if (minimumZ >= -2.0f && minimumZ <= 0.5f)
+            {
+                feetZ = position.z + minimumZ;
+            }
+            if (maximumZ >= 0.5f && maximumZ <= 3.0f)
+            {
+                fallbackHeadZ = position.z + maximumZ + 0.08f;
+            }
         }
 
         RwV3d headWorld{};
         ped->GetBonePosition(headWorld, BONE_HEAD, true);
-        headWorld.z += 0.12f;
+        const float headDx = headWorld.x - position.x;
+        const float headDy = headWorld.y - position.y;
+        const float headDz = headWorld.z - feetZ;
 
-        float feetZ = position.z;
-        if (CColModel* collision = ped->GetColModel())
+        // Some streamed or scoped ped clumps briefly provide an invalid head
+        // bone. Fall back to collision bounds instead of dropping all ESP.
+        if (headDx * headDx + headDy * headDy > 2.25f
+            || headDz < 0.35f || headDz > 3.2f)
         {
-            const float minimumZ = collision->m_boundBox.m_vecMin.z;
-            if (minimumZ >= -2.0f && minimumZ <= 0.5f)
-            {
-                feetZ += minimumZ;
-            }
+            headWorld = { position.x, position.y, fallbackHeadZ };
+        }
+        else
+        {
+            headWorld.z += 0.12f;
         }
 
         const RwV3d feetWorld = { position.x, position.y, feetZ };
@@ -193,7 +217,7 @@ void Esp::Update()
             const int armor = (int)std::lround(std::clamp(ped->m_fArmour, 0.0f, kMaximumArmor));
             snprintf(values, sizeof(values), "HP: %d  Armor: %d", health, armor);
             const float y = boxMin.y - ImGui::GetTextLineHeight() - 4.0f * scale;
-            DrawCenteredText(draw, centerX, y, textColor, values);
+            DrawCenteredText(draw, centerX, y, textColor, values, true);
         }
 
         if (g_cfg.wh_flags & WH_DIST)

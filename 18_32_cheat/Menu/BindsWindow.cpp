@@ -18,12 +18,15 @@ namespace
 
         const float x = min.x;
         const float y = min.y;
-        const float a = size * 0.25f;
-        const float b = size * 0.75f;
+        const float a = size * 0.30f;
+        const float b = size * 0.70f;
         const float m = size * 0.50f;
-        const float top = y + size * 0.27f;
-        const float bot = y + size * 0.73f;
-        const float stroke = ImMax(1.0f, size * 0.11f);
+        const float top = y + size * 0.31f;
+        const float bot = y + size * 0.69f;
+        const float stroke = ImMax(0.75f, size * 0.09f);
+
+        // Keep anti-aliased letter strokes strictly inside their key cap.
+        list->PushClipRect(min + ImVec2(1.0f, 1.0f), max - ImVec2(1.0f, 1.0f), true);
 
         if (letter == 'W')
         {
@@ -58,6 +61,8 @@ namespace
             list->AddLine(ImVec2(x + size * 0.58f, top), ImVec2(x + b, y + size * 0.50f), outline, stroke);
             list->AddLine(ImVec2(x + b, y + size * 0.50f), ImVec2(x + size * 0.58f, bot), outline, stroke);
         }
+
+        list->PopClipRect();
     }
 
     void DrawWasdIcon(ImDrawList* list, const ImVec2& pos, float scale, float alpha)
