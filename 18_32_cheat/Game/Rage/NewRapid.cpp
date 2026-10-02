@@ -3,6 +3,7 @@
 #include "Game/Rage/NewRapid.hpp"
 
 #include "CWeapon.h"
+#include "CPad.h"
 
 #include <algorithm>
 #include <cmath>
@@ -39,7 +40,10 @@ void NewRapid::Update()
     const float multiplier = std::clamp(
         std::round(g_cfg.rapidfire_multiplier * 10.0f) / 10.0f,
         1.0f, 10.0f);
-    if (multiplier <= 1.0f || (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+    CPad* pad = CPad::GetPad(0);
+    const bool firing = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0
+        || (pad && pad->NewState.ButtonCircle != 0);
+    if (multiplier <= 1.0f || !firing)
     {
         nextPulse = 0u;
         return;
