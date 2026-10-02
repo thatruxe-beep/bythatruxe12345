@@ -43,6 +43,9 @@ python -m license.server.run   # лицензионный сервер: http://1
 python -m license.bot.run      # Telegram-бот (в отдельном окне)
 ```
 
+Либо двойным кликом: `license\start-server.bat` и `license\start-bot.bat`
+(запускать из двух разных окон — сервер и бот работают одновременно).
+
 ## Команды бота
 
 | Команда | Что делает |
