@@ -1,0 +1,31 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+
+# Build products
+Debug/
+Release/
+x64/
+x86/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.exe
+*.recipe
+*.tlog
+
+# Local Plugin-SDK configuration
+Directory.Build.props
+
+# Automatically downloaded by the project/build script
+.deps/
