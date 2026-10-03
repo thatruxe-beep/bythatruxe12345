@@ -20,6 +20,7 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from ..keylib import verify_key
 from .config import bind_hwid_enabled, server_settings
 from .db import LicenseStore
 
@@ -49,6 +50,16 @@ def create_app() -> FastAPI:
 
     @app.post("/api/activate")
     def activate(request: LicenseRequest) -> JSONResponse:
+        # Заранее сгенерированные подписанные ключи (genkeys.py) автоматически
+        # регистрируются при первой активации — отдельный шаг импорта не нужен.
+        if app.state.store.get_key(request.key) is None:
+            info = verify_key(request.key)
+            if info is None:
+                return JSONResponse(status_code=404, content={"status": "invalid"})
+            app.state.store.insert_existing_key(
+                request.key, info["minutes"], note="auto"
+            )
+
         code, payload = app.state.store.activate(
             request.key, request.hwid, bind_hwid_enabled()
         )

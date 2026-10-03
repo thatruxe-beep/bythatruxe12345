@@ -525,6 +525,9 @@
     <ClCompile Include="Core\License.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\LicenseNet.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
 
     <ClCompile Include="Gfx\Blur.cpp">
 
@@ -899,6 +902,9 @@
 
     </ClInclude>
     <ClInclude Include="Core\License.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\LicenseNet.hpp">
       <Filter>Core</Filter>
     </ClInclude>
 

@@ -263,3 +263,72 @@ def test_bot_reports_server_error() -> None:
 
     bot = BotHandlers(BrokenApi(), admin_ids=[100])
     assert "Ошибка" in bot.handle(100, "/gen 30")[0]
+
+
+# -- авто-регистрация подписанных ключей + привязка к ПК -----------------
+
+
+def test_pre_generated_key_auto_registers_and_binds() -> None:
+    """Ключ из genkeys.py: первая активация привязывает его к ПК,
+    на чужом ПК тот же ключ не работает."""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from keylib import make_key
+
+    client = make_client()
+    key = make_key(30 * 1440)  # универсальный ключ на 30 дней, как из стока
+
+    # первой активации нет в базе — сервер регистрирует и активирует
+    first = client.post("/api/activate", json={"key": key, "hwid": "AAAA1111BBBB2222"})
+    assert first.status_code == 200, first.text
+    body = first.json()
+    assert body["status"] == "ok"
+    assert body["first"] is True
+    assert body["days_left"] == 30
+
+    # тот же ПК — работает
+    again = client.post("/api/activate", json={"key": key, "hwid": "AAAA1111BBBB2222"})
+    assert again.status_code == 200
+    assert again.json()["first"] is False
+
+    # чужой ПК — отказ
+    other = client.post("/api/activate", json={"key": key, "hwid": "CCCC3333DDDD4444"})
+    assert other.status_code == 403
+    assert other.json()["status"] == "hwid_mismatch"
+
+    # статус с чужого ПК тоже отказ
+    other_status = client.post("/api/status", json={"key": key, "hwid": "CCCC3333DDDD4444"})
+    assert other_status.status_code == 403
+
+
+def test_five_minute_key_expires_by_minutes() -> None:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from keylib import make_key
+
+    client = make_client()
+    key = make_key(5)  # 5 минут
+
+    first = client.post("/api/activate", json={"key": key, "hwid": "AAAA1111BBBB2222"})
+    assert first.status_code == 200
+    assert first.json()["status"] == "ok"
+
+    # имитируем истечение 5-минутного срока
+    store = client.app.state.store
+    past = "2020-01-01T00:00:00Z"
+    store._execute("UPDATE license_keys SET expires_at = ? WHERE key = ?", (past, key))
+
+    expired = client.post("/api/activate", json={"key": key, "hwid": "AAAA1111BBBB2222"})
+    assert expired.status_code == 403
+    assert expired.json()["status"] == "expired"
+
+
+def test_unsigned_garbage_not_registered() -> None:
+    client = make_client()
+    response = client.post("/api/activate", json={"key": "XXXX-XXXX-XXXX-XXXX", "hwid": "x"})
+    assert response.status_code == 404
+    assert response.json()["status"] == "invalid"

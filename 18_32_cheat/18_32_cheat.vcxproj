@@ -130,7 +130,7 @@
 
       <AdditionalLibraryDirectories>$(PluginSdkDir)\output\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
 
-      <AdditionalDependencies>plugin.lib;d3d9.lib;windowscodecs.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>plugin.lib;d3d9.lib;windowscodecs.lib;psapi.lib;winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
 
     </Link>
 
@@ -170,7 +170,7 @@
 
       <AdditionalLibraryDirectories>$(PluginSdkDir)\output\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
 
-      <AdditionalDependencies>plugin.lib;d3d9.lib;windowscodecs.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>plugin.lib;d3d9.lib;windowscodecs.lib;psapi.lib;winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
 
     </Link>
 
@@ -292,6 +292,7 @@
 
     <ClCompile Include="Core\Config.cpp" />
     <ClCompile Include="Core\License.cpp" />
+    <ClCompile Include="Core\LicenseNet.cpp" />
 
     <ClCompile Include="Gfx\Blur.cpp" />
 
@@ -440,6 +441,7 @@
 
     <ClInclude Include="Core\Config.hpp" />
     <ClInclude Include="Core\License.hpp" />
+    <ClInclude Include="Core\LicenseNet.hpp" />
 
     <ClInclude Include="Gfx\Blur.hpp" />
 

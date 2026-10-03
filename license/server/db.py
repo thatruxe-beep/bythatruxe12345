@@ -4,6 +4,9 @@
 - «не активирован» — создан, но срок ещё не идёт;
 - «активен» — активирован, срок тикает от `activated_at` до `expires_at`;
 - «истёк»/«отозван» — доступ блокируется.
+
+Срок хранится в минутах (`duration_minutes`), чтобы работали короткие
+тестовые ключи (например, 5 минут). `duration_days` остаётся для отчётов.
 """
 
 from __future__ import annotations
@@ -24,16 +27,17 @@ MAX_GENERATION_ATTEMPTS = 64
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS license_keys (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    key           TEXT    NOT NULL UNIQUE,
-    duration_days INTEGER NOT NULL,
-    note          TEXT    NOT NULL DEFAULT '',
-    created_at    TEXT    NOT NULL,
-    activated_at  TEXT,
-    expires_at    TEXT,
-    hwid          TEXT,
-    activations   INTEGER NOT NULL DEFAULT 0,
-    revoked       INTEGER NOT NULL DEFAULT 0
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    key              TEXT    NOT NULL UNIQUE,
+    duration_days    INTEGER NOT NULL DEFAULT 0,
+    duration_minutes INTEGER NOT NULL DEFAULT 0,
+    note             TEXT    NOT NULL DEFAULT '',
+    created_at       TEXT    NOT NULL,
+    activated_at     TEXT,
+    expires_at       TEXT,
+    hwid             TEXT,
+    activations      INTEGER NOT NULL DEFAULT 0,
+    revoked          INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -76,8 +80,21 @@ class LicenseStore:
             self._connection = sqlite3.connect(str(self.path), check_same_thread=False)
             self._connection.row_factory = sqlite3.Row
             self._connection.executescript(SCHEMA)
+            self._migrate()
             self._connection.commit()
         return self._connection
+
+    def _migrate(self) -> None:
+        """Добавляет duration_minutes к старым базам и заполняет его."""
+        columns = [row["name"] for row in self._connection.execute("PRAGMA table_info(license_keys)")]
+        if "duration_minutes" not in columns:
+            self._connection.execute(
+                "ALTER TABLE license_keys ADD COLUMN duration_minutes INTEGER NOT NULL DEFAULT 0"
+            )
+            self._connection.execute(
+                "UPDATE license_keys SET duration_minutes = duration_days * 1440"
+                " WHERE duration_minutes = 0"
+            )
 
     def close(self) -> None:
         with self._lock:
@@ -117,9 +134,10 @@ class LicenseStore:
                 value = self.generate_key_value()
                 try:
                     self._execute(
-                        "INSERT INTO license_keys (key, duration_days, note, created_at)"
-                        " VALUES (?, ?, ?, ?)",
-                        (value, days, note, to_iso(utcnow())),
+                        "INSERT INTO license_keys"
+                        " (key, duration_days, duration_minutes, note, created_at)"
+                        " VALUES (?, ?, ?, ?, ?)",
+                        (value, days, days * 1440, note, to_iso(utcnow())),
                     )
                 except sqlite3.IntegrityError:
                     continue
@@ -130,6 +148,20 @@ class LicenseStore:
             else:
                 raise RuntimeError("Не удалось сгенерировать уникальный ключ")
         return created
+
+    def insert_existing_key(self, value: str, minutes: int, note: str = "") -> Optional[dict]:
+        """Регистрирует заранее сгенерированный подписанный ключ (genkeys.py)."""
+        days = minutes // 1440
+        try:
+            self._execute(
+                "INSERT INTO license_keys"
+                " (key, duration_days, duration_minutes, note, created_at)"
+                " VALUES (?, ?, ?, ?, ?)",
+                (normalize_key(value), days, minutes, note, to_iso(utcnow())),
+            )
+        except sqlite3.IntegrityError:
+            pass  # уже зарегистрирован
+        return self.get_key(value)
 
     # -- чтение --------------------------------------------------------
 
@@ -155,15 +187,6 @@ class LicenseStore:
     def reset_hwid(self, key: str) -> Optional[dict]:
         self._execute(
             "UPDATE license_keys SET hwid = NULL WHERE key = ?", (normalize_key(key),)
-        )
-        return self.get_key(key)
-
-    def force_expire(self, key: str) -> Optional[dict]:
-        """Тестовая/служебная утилита: сделать ключ истёкшим."""
-        past = to_iso(utcnow() - timedelta(days=1))
-        self._execute(
-            "UPDATE license_keys SET activated_at = ?, expires_at = ? WHERE key = ?",
-            (past, past, normalize_key(key)),
         )
         return self.get_key(key)
 
@@ -205,7 +228,7 @@ class LicenseStore:
 
         if state == "unused":
             now = utcnow()
-            expires = now + timedelta(days=record["duration_days"])
+            expires = now + timedelta(minutes=record["duration_minutes"])
             self._execute(
                 "UPDATE license_keys"
                 " SET activated_at = ?, expires_at = ?, hwid = ?,"
@@ -237,7 +260,7 @@ class LicenseStore:
             return 200, {
                 "status": "unused",
                 "first": False,
-                "days_left": record["duration_days"],
+                "days_left": max(1, record["duration_minutes"] // 1440),
                 "duration_days": record["duration_days"],
                 "activated_at": None,
                 "expires_at": None,

@@ -3,6 +3,8 @@
 
 #include "Core/License.hpp"
 
+#include "Core/LicenseNet.hpp"
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -193,10 +195,9 @@ namespace
 
     bool KeyMatchesThisPc(const license::KeyInfo& info)
     {
-        // Принимаются только ключи, выданные под HWID этого ПК.
-        // Универсальные ключи без привязки не работают: их можно передать
-        // другому человеку.
-        return info.hwid_bound && info.hwid == g_machine_hwid;
+        // Ключи v2 дополнительно проверяются локально; ключи v1 (сток)
+        // привязываются к ПК при первой активации на сервере.
+        return !info.hwid_bound || info.hwid == g_machine_hwid;
     }
 
     int64_t ExpiryUnix()
@@ -329,19 +330,46 @@ namespace License
             return;
         }
 
-        // Универсальный ключ без привязки к ПК больше не принимается:
-        // такой ключ можно передать другому человеку.
-        if (!info.hwid_bound)
-        {
-            g_phase = static_cast<int>(Phase::UnboundKey);
-            return;
-        }
-
-        // Чужой ключ: привязан к другому компьютеру — не активируем,
-        // даём ввести правильный. Игра при этом не закрывается.
+        // Ключ v2, выданный под другой ПК, отсекаем ещё до сети.
         if (!KeyMatchesThisPc(info))
         {
             g_phase = static_cast<int>(Phase::HwidMismatch);
+            return;
+        }
+
+        // Активация на сервере: именно сервер привязывает ключ к этому ПК
+        // при первом вводе и отклоняет тот же ключ с чужого компьютера.
+        char hwidText[16] = {};
+        _snprintf_s(hwidText, sizeof(hwidText), _TRUNCATE, "%010llX",
+                    static_cast<unsigned long long>(g_machine_hwid));
+
+        LicenseNet::ActivateResult net;
+        if (!LicenseNet::Activate(normalized, hwidText, net))
+        {
+            // Сеть/сервер недоступны — доступ не выдаём, игру не закрываем.
+            g_phase = static_cast<int>(Phase::ServerError);
+            return;
+        }
+
+        if (net.status == "hwid_mismatch")
+        {
+            g_phase = static_cast<int>(Phase::HwidMismatch);
+            return;
+        }
+        if (net.status == "expired")
+        {
+            g_phase = static_cast<int>(Phase::Expired);
+            return;
+        }
+        if (net.status == "revoked")
+        {
+            g_phase = static_cast<int>(Phase::Revoked);
+            return;
+        }
+        if (net.status != "ok")
+        {
+            // Подпись верна локально, но сервер ключ не принял.
+            g_phase = static_cast<int>(Phase::ServerError);
             return;
         }
 

@@ -1,52 +1,54 @@
 #!/usr/bin/env python3
 """Офлайн-генератор лицензионных ключей «18:32 cheat».
 
-Все ключи привязываются к HWID конкретного компьютера — универсальных
-ключей нет: ключ, выданный покупателю, нельзя передать другому человеку.
+Ключи генерируются заранее, без знания HWID покупателя (как сток).
+Привязка к компьютеру происходит автоматически **при первой активации**:
+сервер лицензий запоминает HWID первого ПК, и на любом другом компьютере
+этот же ключ работать не будет.
 
-Как пользоваться:
-1. Покупатель запускает игру с читом — в правом верхнем углу окна
-   активации виден его HWID (10 символов) и отправляет его вам.
-2. Вы генерируете ключ под этот HWID:
+Использование:
+    python license/genkeys.py                # сток: 100×30 дн, 100×180, 100×365, 15×5 мин
+    python license/genkeys.py 60 10          # 10 ключей на 60 дней
+    python license/genkeys.py 5 3 --minutes  # 3 ключа на 5 минут (тесты)
+    python license/genkeys.py --list         # показать сгенерированные файлы
 
-       python license/genkeys.py 30 1 --hwid 1A2B3C4D5E    # 30 дней
-       python license/genkeys.py 365 1 --hwid 1A2B3C4D5E   # год
-       python license/genkeys.py 5 1 --hwid 1A2B3C4D5E --minutes  # 5 минут
+Ключ с привязкой к конкретному HWID при выдаче (по желанию):
+    python license/genkeys.py 30 1 --hwid 1A2B3C4D5E
 
-3. Отправляете ключ покупателю. Срок начнётся с первой активации.
-
-Формат ключа: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX.
-
-ВНИМАНИЕ: секрет задан и в этом скрипте, и в DLL (Core/License.cpp).
-Если сменить секрет — все выданные ключи перестанут работать.
+ВНИМАНИЕ: секрет задан и здесь, и в DLL (Core/License.cpp), и на сервере
+лицензий. Смена секрета = все выданные ключи перестают работать.
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
-import hmac
-import secrets
 from pathlib import Path
 
-SECRET = bytes.fromhex("e2387d0a0d4f550073695ab0356350f0b9122e2aa7f84c27bfc4a8e5ab4405bb")
-ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+from keylib import make_key
+
 KEYS_DIR = Path(__file__).resolve().parent / "keys"
 
+# Стандартный сток: (срок, количество, имя файла, срок_в_минутах)
+DEFAULT_BATCH = [
+    (30, 100, "keys_30_days.txt", False),
+    (180, 100, "keys_180_days.txt", False),
+    (365, 100, "keys_365_days.txt", False),
+    (5, 15, "keys_5_minutes.txt", True),
+]
 
-def base32_encode(data: bytes) -> str:
-    value = 0
-    bits = 0
-    out = []
-    for byte in data:
-        value = (value << 8) | byte
-        bits += 8
-        while bits >= 5:
-            bits -= 5
-            out.append(ALPHABET[(value >> bits) & 31])
-    if bits:
-        out.append(ALPHABET[(value << (5 - bits)) & 31])
-    return "".join(out)
+
+def days_word(days: int) -> str:
+    if days % 10 == 1 and days % 100 != 11:
+        return "день"
+    if 2 <= days % 10 <= 4 and (days % 100 < 10 or days % 100 >= 20):
+        return "дня"
+    return "дней"
+
+
+def write_batch(path: Path, keys: list[str], label: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(keys) + "\n", encoding="utf-8")
+    print(f"[gen] {path.name}: {len(keys)} ключей — {label}")
 
 
 def parse_hwid(text: str) -> int:
@@ -58,34 +60,14 @@ def parse_hwid(text: str) -> int:
     return int(cleaned, 16)
 
 
-def make_key(minutes: int, hwid: int) -> str:
-    payload = (
-        bytes([2])
-        + minutes.to_bytes(4, "little")
-        + secrets.randbits(32).to_bytes(4, "little")
-        + hwid.to_bytes(5, "little")
-    )
-    mac = hmac.new(SECRET, payload, hashlib.sha256).digest()[:11]
-    raw = base32_encode(payload + mac)
-    return "-".join(raw[i : i + 4] for i in range(0, len(raw), 4))
-
-
-def days_word(days: int) -> str:
-    if days % 10 == 1 and days % 100 != 11:
-        return "день"
-    if 2 <= days % 10 <= 4 and (days % 100 < 10 or days % 100 >= 20):
-        return "дня"
-    return "дней"
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Генератор ключей 18:32 cheat (только с привязкой к HWID)",
+        description="Генератор ключей 18:32 cheat",
         epilog=(
             "Примеры:\n"
-            "  python license/genkeys.py 30 1 --hwid 1A2B3C4D5E   ключ на 30 дней\n"
-            "  python license/genkeys.py 365 3 --hwid 1A2B3C4D5E  три годовых ключа\n"
-            "  python license/genkeys.py 5 1 --hwid 1A2B3C4D5E --minutes   5 минут (тест)\n"
+            "  python license/genkeys.py               стандартный сток\n"
+            "  python license/genkeys.py 60 10         10 ключей на 60 дней\n"
+            "  python license/genkeys.py 5 3 --minutes 3 тестовых ключа на 5 минут\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -94,15 +76,15 @@ def main() -> None:
     parser.add_argument("--minutes", action="store_true", help="считать срок в минутах, а не днях")
     parser.add_argument(
         "--hwid",
-        required=True,
-        help="HWID покупателя (10 hex-символов из окна активации)",
+        default=None,
+        help="необязательно: сразу привязать ключ к HWID (10 hex-символов)",
     )
     parser.add_argument("--out", default=str(KEYS_DIR), help="куда сохранять файлы")
     parser.add_argument("--list", action="store_true", help="показать уже сгенерированные файлы")
     args = parser.parse_args()
 
     out_dir = Path(args.out)
-    hwid = parse_hwid(args.hwid)
+    hwid = parse_hwid(args.hwid) if args.hwid else None
 
     if args.list:
         if not out_dir.is_dir():
@@ -113,24 +95,34 @@ def main() -> None:
             print(f"{path.name}: {len(lines)} ключей")
         return
 
-    if args.days is None:
-        raise SystemExit(
-            "Укажите срок: python license/genkeys.py <дней> [сколько] --hwid <HWID>\n"
-            "Например: python license/genkeys.py 30 1 --hwid 1A2B3C4D5E"
-        )
-    if args.days < 1:
-        raise SystemExit("Срок должен быть положительным.")
+    if args.days is not None:
+        if args.days < 1:
+            raise SystemExit("Срок должен быть положительным.")
+        count = max(1, min(args.count, 1000))
+        unit = "минут" if args.minutes else days_word(args.days)
+        minutes = args.days if args.minutes else args.days * 1440
+        keys = [make_key(minutes, hwid) for _ in range(count)]
 
-    count = max(1, min(args.count, 1000))
-    unit = "минут" if args.minutes else days_word(args.days)
-    minutes = args.days if args.minutes else args.days * 1440
-    keys = [make_key(minutes, hwid) for _ in range(count)]
+        if hwid is not None:
+            path = out_dir / f"keys_{args.days}{'m' if args.minutes else 'd'}_hwid_{hwid:010X}.txt"
+            label = f"{args.days} {unit}, HWID {hwid:010X}"
+        else:
+            suffix = "minutes" if args.minutes else "days"
+            path = out_dir / f"keys_{args.days}_{suffix}.txt"
+            label = f"{args.days} {unit}"
+        write_batch(path, keys, label)
+        print("[gen] Напоминание: срок начинается с первой активации;")
+        print("[gen] после неё ключ привязан к ПК покупателя автоматически.")
+        return
 
-    suffix = "m" if args.minutes else "d"
-    path = out_dir / f"keys_{args.days}{suffix}_hwid_{hwid:010X}.txt"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(keys) + "\n", encoding="utf-8")
-    print(f"[gen] {path.name}: {len(keys)} ключей — {args.days} {unit}, HWID {hwid:010X}")
+    # Стандартный сток (универсальные ключи).
+    for days, count, name, in_minutes in DEFAULT_BATCH:
+        minutes = days if in_minutes else days * 1440
+        label = f"{days} минут" if in_minutes else f"{days} {days_word(days)}"
+        keys = [make_key(minutes) for _ in range(count)]
+        write_batch(out_dir / name, keys, label)
+
+    print("[gen] готово. Привязка к ПК происходит при первой активации (сервер).")
 
 
 if __name__ == "__main__":
