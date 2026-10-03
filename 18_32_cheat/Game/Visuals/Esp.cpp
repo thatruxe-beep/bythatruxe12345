@@ -77,6 +77,54 @@ namespace
         draw->AddText(pos + ImVec2(1.0f, 1.0f), IM_COL32(0, 0, 0, 230), text);
         draw->AddText(pos, color, text);
     }
+
+    const char* WeaponName(int type)
+    {
+        switch (type)
+        {
+        case 0: return "Fist";
+        case 1: return "Knuckles";
+        case 2: return "Golf club";
+        case 3: return "Nightstick";
+        case 4: return "Knife";
+        case 5: return "Bat";
+        case 6: return "Shovel";
+        case 7: return "Pool cue";
+        case 8: return "Katana";
+        case 9: return "Chainsaw";
+        case 14: return "Flowers";
+        case 15: return "Cane";
+        case 16: return "Grenade";
+        case 17: return "Tear gas";
+        case 18: return "Molotov";
+        case 22: return "Colt 45";
+        case 23: return "Silenced";
+        case 24: return "Deagle";
+        case 25: return "Shotgun";
+        case 26: return "Sawn-off";
+        case 27: return "Combat SG";
+        case 28: return "Uzi";
+        case 29: return "MP5";
+        case 30: return "AK-47";
+        case 31: return "M4";
+        case 32: return "Tec-9";
+        case 33: return "Rifle";
+        case 34: return "Sniper";
+        case 35: return "RPG";
+        case 36: return "HS RPG";
+        case 37: return "Flamethrower";
+        case 38: return "Minigun";
+        case 39: return "Satchel";
+        case 40: return "Detonator";
+        case 41: return "Spray";
+        case 42: return "Fire ext.";
+        case 43: return "Camera";
+        case 44: return "NV goggles";
+        case 45: return "Thermal";
+        case 46: return "Parachute";
+        default: return nullptr;
+        }
+    }
 }
 
 void Esp::Update()
@@ -246,6 +294,24 @@ void Esp::Update()
             char value[24]{};
             snprintf(value, sizeof(value), "%d m", (int)std::lround(distance));
             DrawCenteredText(draw, centerX, boxMax.y + 3.0f * scale, textColor, value);
+        }
+
+        if (g_cfg.wh_flags & WH_WEAPON)
+        {
+            // Активное оружие педа: название под боксом (под дистанцией).
+            if (ped->m_nSelectedWepSlot < 13)
+            {
+                const CWeapon& weapon = ped->m_aWeapons[ped->m_nSelectedWepSlot];
+                if (const char* weaponName = WeaponName(static_cast<int>(weapon.m_eWeaponType)))
+                {
+                    float y = boxMax.y + 3.0f * scale;
+                    if (g_cfg.wh_flags & WH_DIST)
+                    {
+                        y += ImGui::GetTextLineHeight() + 2.0f * scale;
+                    }
+                    DrawCenteredText(draw, centerX, y, textColor, weaponName, true);
+                }
+            }
         }
 
         if (g_cfg.wh_flags & WH_SKELETON)

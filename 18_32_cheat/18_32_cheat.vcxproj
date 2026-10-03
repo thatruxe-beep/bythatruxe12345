@@ -234,6 +234,7 @@
 
     <ClCompile Include="Game\Rage\RapidFire.cpp" />
     <ClCompile Include="Game\Rage\NewRapid.cpp" />
+    <ClCompile Include="Game\Rage\ClickWarp.cpp" />
     <ClCompile Include="Game\Rage\RandomGodMode.cpp" />
     <ClCompile Include="Game\Misc\Ram.cpp" />
     <ClCompile Include="Game\Misc\AutoRepair.cpp" />
@@ -409,6 +410,7 @@
 
     <ClInclude Include="Game\Rage\RapidFire.hpp" />
     <ClInclude Include="Game\Rage\NewRapid.hpp" />
+    <ClInclude Include="Game\Rage\ClickWarp.hpp" />
     <ClInclude Include="Game\Rage\RandomGodMode.hpp" />
     <ClInclude Include="Game\Misc\Ram.hpp" />
     <ClInclude Include="Game\Misc\AutoRepair.hpp" />

@@ -143,6 +143,7 @@ void Menu::DrawBinds()
         { &g_cfg.randomgodmode_bind, &g_cfg.randomgodmode, false },
         { &g_cfg.autorepair_bind, &g_cfg.autorepair, true },
         { &g_cfg.newrapid_bind, &g_cfg.newrapid, false },
+        { &g_cfg.clickwarp_bind, &g_cfg.clickwarp, false },
     };
 
     static const int kBindCount = sizeof(kBinds) / sizeof(kBinds[0]);

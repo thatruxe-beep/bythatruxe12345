@@ -32,6 +32,8 @@ void Menu::DrawRage()
         }
         widget_alpha_mul = previousAlpha;
     }
+    BindableCheckbox("clickwarp", tr("Клик-варп", "Click warp"),
+        &g_cfg.clickwarp, &g_cfg.clickwarp_bind);
     BindableCheckbox("airbreak", tr("Аир-брейк", "Air brake"),
         &g_cfg.airbreake, &g_cfg.airbreake_bind);
     BindableCheckbox("ram", tr("Таран", "Ram"), &g_cfg.ram, &g_cfg.ram_bind);

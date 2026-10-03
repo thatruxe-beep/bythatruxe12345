@@ -211,50 +211,6 @@ namespace
         return nullptr;
     }
 
-    void RecomputePhase()
-    {
-        const int64_t now = NowUnix();
-        g_exit_at_unix = 0;
-
-        if (g_state.current_key.empty())
-        {
-            g_phase = static_cast<int>(License::Phase::NeedKey);
-            return;
-        }
-
-        license::KeyInfo info;
-        if (!license::ParseKey(g_state.current_key, Secret(), info))
-        {
-            g_phase = static_cast<int>(License::Phase::NeedKey);
-            return;
-        }
-
-        // Ключ v2 работает только на том ПК, под который выдан.
-        if (!KeyMatchesThisPc(info))
-        {
-            g_phase = static_cast<int>(License::Phase::HwidMismatch);
-            return;
-        }
-
-        const license::ActivationRecord* record = FindRecord(info.serial);
-        if (record == nullptr)
-        {
-            // Ключ без записи активации не должен был сюда попасть.
-            g_phase = static_cast<int>(License::Phase::NeedKey);
-            return;
-        }
-
-        g_current_minutes = info.minutes;
-        g_activation_unix = record->activation_unix;
-
-        if (ExpiryUnix() <= now)
-        {
-            g_phase = static_cast<int>(License::Phase::Expired);
-            return;
-        }
-        g_phase = static_cast<int>(License::Phase::Authorized);
-    }
-
     void SaveState()
     {
         SaveBlob(license::SerializeState(g_state, Secret()));
@@ -323,12 +279,16 @@ namespace License
             return;
         }
 
-        RecomputePhase();
-
-        if (!g_state.current_key.empty())
-        {
-            strncpy_s(g_key_buffer, g_state.current_key.c_str(), _TRUNCATE);
-        }
+        // Ключ спрашивается при каждом запуске: даже сохранённый ключ не
+        // активирует функции автоматически. История активаций хранится,
+        // поэтому срок уже начатого ключа продолжает тикать, а повторный
+        // ввод того же ключа срок не продлевает.
+        g_state.current_key.clear();
+        g_current_minutes = 0;
+        g_activation_unix = 0;
+        g_exit_at_unix = 0;
+        g_key_buffer[0] = '\0';
+        g_phase = static_cast<int>(Phase::NeedKey);
     }
 
     Phase GetPhase()

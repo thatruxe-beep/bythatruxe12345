@@ -345,6 +345,9 @@
       <Filter>Game\Rage</Filter>
 
     </ClCompile>
+    <ClCompile Include="Game\Rage\ClickWarp.cpp">
+      <Filter>Game\Rage</Filter>
+    </ClCompile>
     <ClCompile Include="Game\Misc\AutoRepair.cpp">
 
       <Filter>Game\Misc</Filter>
@@ -801,6 +804,9 @@
 
       <Filter>Game\Rage</Filter>
 
+    </ClInclude>
+    <ClInclude Include="Game\Rage\ClickWarp.hpp">
+      <Filter>Game\Rage</Filter>
     </ClInclude>
     <ClInclude Include="Game\Misc\AutoRepair.hpp">
 

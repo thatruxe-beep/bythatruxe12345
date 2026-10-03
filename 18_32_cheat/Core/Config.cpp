@@ -282,6 +282,9 @@ bool config_t::Save(const std::string& name)
     WriteInt(body, "newrapid_key", newrapid_bind.key);
     WriteInt(body, "newrapid_mode", newrapid_bind.mode);
     WriteFloat(body, "rapidfire_multiplier", rapidfire_multiplier);
+    WriteBool(body, "clickwarp", clickwarp);
+    WriteInt(body, "clickwarp_key", clickwarp_bind.key);
+    WriteInt(body, "clickwarp_mode", clickwarp_bind.mode);
 
     WriteInt(body, "wh_flags", (int)wh_flags);
     WriteColor(body, "whcol", whcol);
@@ -511,6 +514,9 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "newrapid_key") { ReadInt(value, newrapid_bind.key); }
     else if (key == "newrapid_mode") { ReadInt(value, newrapid_bind.mode); }
     else if (key == "rapidfire_multiplier") { ReadFloat(value, rapidfire_multiplier); }
+    else if (key == "clickwarp") { ReadBool(value, clickwarp); }
+    else if (key == "clickwarp_key") { ReadInt(value, clickwarp_bind.key); }
+    else if (key == "clickwarp_mode") { ReadInt(value, clickwarp_bind.mode); }
 
     else if (key == "wh_flags") { int t = 15; if (ReadInt(value, t)) { wh_flags = (unsigned int)t; } }
     else if (key == "whcol") { ReadColor(value, whcol); }

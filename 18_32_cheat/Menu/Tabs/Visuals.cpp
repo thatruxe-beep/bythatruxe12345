@@ -60,6 +60,7 @@ void Menu::DrawVisuals()
         flagCheckbox(tr("Полоса брони", "Armor bar"), WH_ARMOR);
         flagCheckbox(tr("HP / броня текстом", "HP / armor text"), WH_TEXT);
         flagCheckbox(tr("Дистанция", "Distance"), WH_DIST);
+        flagCheckbox(tr("Оружие", "Weapon"), WH_WEAPON);
         flagCheckbox(tr("Скелет", "Skeleton"), WH_SKELETON);
         flagCheckbox(tr("Трассер снизу", "Bottom tracer"), WH_SNAP);
 

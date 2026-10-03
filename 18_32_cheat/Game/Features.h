@@ -31,6 +31,7 @@
 
 #include "Game/Rage/RapidFire.hpp"
 #include "Game/Rage/NewRapid.hpp"
+#include "Game/Rage/ClickWarp.hpp"
 #include "Game/Rage/RandomGodMode.hpp"
 #include "Game/Legit/FastCrosshair.hpp"
 #include "Game/Rage/NoRecoil.hpp"
