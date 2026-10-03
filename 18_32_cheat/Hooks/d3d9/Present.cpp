@@ -14,9 +14,7 @@
 #include "Gfx/Blur.hpp"
 #include "Gfx/Fonts.hpp"
 #include "Menu/Menu.hpp"
-#include "Menu/Auth.hpp"
 #include "Core/Config.hpp"
-#include "Core/License.hpp"
 #include "Core/Runtime.hpp"
 #include "Game/Features.h"
 
@@ -60,17 +58,14 @@ LRESULT WINAPI WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM l
     WndProcCallGuard callGuard;
     WNDPROC original = oWndProc;
     const bool shuttingDown = InterlockedCompareExchange(&sShuttingDown, 0, 0) != 0;
-    // Окно активации перехватывает ввод так же, как открытое меню.
-    const bool auth_active = !shuttingDown && License::NeedsInputOverlay();
-    const bool is_open = !shuttingDown && !auth_active && (menu && menu->GetState());
-    const bool wants_input = auth_active || is_open;
+    const bool is_open = !shuttingDown && (menu && menu->GetState());
 
-    if (wants_input && ImGui::GetCurrentContext())
+    if (is_open && ImGui::GetCurrentContext())
     {
         ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam);
     }
 
-    if (wants_input)
+    if (is_open)
     {
         if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST)
             || (message >= WM_KEYFIRST && message <= WM_KEYLAST)
@@ -168,60 +163,6 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     ImGui::GetIO().FontGlobalScale = g_cfg.ui_scale / 100.0f;
-
-    // Периодическая проверка срока (истёкший ключ отключает функции).
-    License::Tick();
-
-    static bool sAuthCursorActive = false;
-
-    if (!License::Authorized())
-    {
-        // До активации лицензии ни одна функция чита не работает:
-        // рисуем окно ввода ключа вместо меню.
-        Auth::Draw();
-        License::EnforceExit();
-
-        // Курсор — как у открытого меню: принудительно показываем игровой
-        // курсор и рисуем акцентную стрелку поверх (работает и в одиночной
-        // игре, где игрового курсора нет).
-        if (Cself && callForceCursorVisible)
-        {
-            callForceCursorVisible(Cself, true, true);
-            sAuthCursorActive = true;
-        }
-
-        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-
-        if (hGameWindow)
-        {
-            POINT p;
-            GetCursorPos(&p);
-            ScreenToClient(hGameWindow, &p);
-            const float cursorScale = g_cfg.ui_scale / 100.0f;
-            const ImVec2 origin((float)p.x, (float)p.y);
-            const ImU32 accent = static_cast<ImU32>(g_cfg.accent.to_color().as_imcolor());
-
-            // Use ImGui's standard arrow geometry (matching a regular system cursor)
-            // and only replace its white fill with the configured accent color.
-            ImGui::RenderMouseCursor(ImGui::GetForegroundDrawList(), origin, cursorScale,
-                ImGuiMouseCursor_Arrow, accent, IM_COL32(15, 15, 15, 255), IM_COL32(0, 0, 0, 80));
-        }
-
-        ImGui::EndFrame();
-        ImGui::Render();
-        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-        return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
-    }
-
-    // Окно активации закрылось — возвращаем курсор в обычное состояние игры.
-    if (sAuthCursorActive)
-    {
-        sAuthCursorActive = false;
-        if (Cself && callForceCursorVisible)
-        {
-            callForceCursorVisible(Cself, false, false);
-        }
-    }
 
     KeyBinds::Update();
     World::Update();

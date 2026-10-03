@@ -3,7 +3,6 @@
 #include <windows.h>
 
 #include "Core/Config.hpp"
-#include "Core/License.hpp"
 #include "Core/Runtime.hpp"
 #include "Game/Features.h"
 #include "Hooks/Hooks.hpp"
@@ -20,7 +19,6 @@ namespace
     DWORD WINAPI MainThread(LPVOID)
     {
         config_t::EnsureDir();
-        License::Initialize();
         Hooks::InstallHooks();
 
         HANDLE airThread = CreateThread(nullptr, 0, AirBreakThread, nullptr, 0, nullptr);

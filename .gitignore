@@ -29,12 +29,3 @@ Directory.Build.props
 
 # Automatically downloaded by the project/build script
 .deps/
-
-# License system local data
-license/config.json
-license/*.db
-license/*.db-journal
-license/*.db-wal
-license/*.db-shm
-__pycache__/
-.pytest_cache/

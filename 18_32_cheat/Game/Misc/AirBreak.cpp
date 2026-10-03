@@ -1,7 +1,6 @@
 #include "Game/Features.h"
 
 #include "Game/Misc/AirBreak.hpp"
-#include "Core/License.hpp"
 #include "Core/Runtime.hpp"
 
 #include <cmath>
@@ -15,13 +14,6 @@ void AirBreak::Run()
 {
     while (Runtime::IsRunning())
     {
-        // Без активной лицензии функции не работают.
-        if (!License::Authorized())
-        {
-            Sleep(100);
-            continue;
-        }
-
         if (g_cfg.nocamcol)
         {
             TheCamera.m_bMoveCamToAvoidGeom = false;

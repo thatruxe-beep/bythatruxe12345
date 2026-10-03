@@ -411,9 +411,6 @@
       <Filter>Menu</Filter>
 
     </ClCompile>
-    <ClCompile Include="Menu\Auth.cpp">
-      <Filter>Menu</Filter>
-    </ClCompile>
 
     <ClCompile Include="Menu\Binds.cpp">
 
@@ -521,12 +518,6 @@
 
       <Filter>Core</Filter>
 
-    </ClCompile>
-    <ClCompile Include="Core\License.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\LicenseNet.cpp">
-      <Filter>Core</Filter>
     </ClCompile>
 
     <ClCompile Include="Gfx\Blur.cpp">
@@ -868,9 +859,6 @@
       <Filter>Menu</Filter>
 
     </ClInclude>
-    <ClInclude Include="Menu\Auth.hpp">
-      <Filter>Menu</Filter>
-    </ClInclude>
 
     <ClInclude Include="Menu\Widgets.hpp">
 
@@ -900,12 +888,6 @@
 
       <Filter>Core</Filter>
 
-    </ClInclude>
-    <ClInclude Include="Core\License.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\LicenseNet.hpp">
-      <Filter>Core</Filter>
     </ClInclude>
 
     <ClInclude Include="Gfx\Blur.hpp">
