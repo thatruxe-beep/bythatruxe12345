@@ -86,6 +86,7 @@ static std::string Bind_Display_Name(int i)
     case 35: return tr("Рандом ГМ", "Random god mode");
     case 36: return tr("ГМ авто", "Vehicle GM");
     case 37: return tr("Новый рапид", "New rapid");
+    case 38: return tr("Клик-варп", "Click warp");
     default: return "";
     }
 }

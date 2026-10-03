@@ -73,7 +73,8 @@ void Auth::Draw()
     const License::Phase phase = License::GetPhase();
     const bool canType = (phase == License::Phase::NeedKey
                           || phase == License::Phase::Expired
-                          || phase == License::Phase::HwidMismatch);
+                          || phase == License::Phase::HwidMismatch
+                          || phase == License::Phase::UnboundKey);
     // Каждый раз при появлении поля — сразу фокус на него, чтобы можно было
     // печатать ключ без клика мышью.
     static bool sFocusPending = true;
@@ -164,6 +165,12 @@ void Auth::Draw()
     else if (phase == License::Phase::HwidMismatch)
     {
         _snprintf_s(status, _TRUNCATE, "%s", "Ключ привязан к другому компьютеру");
+        statusColor = kWarning;
+    }
+    else if (phase == License::Phase::UnboundKey)
+    {
+        _snprintf_s(status, _TRUNCATE, "%s",
+            "Ключ без привязки не принимается. Запросите ключ под свой HWID");
         statusColor = kWarning;
     }
     else if (phase == License::Phase::WrongKey)

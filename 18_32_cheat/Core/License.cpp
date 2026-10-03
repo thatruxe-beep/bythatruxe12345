@@ -193,7 +193,10 @@ namespace
 
     bool KeyMatchesThisPc(const license::KeyInfo& info)
     {
-        return !info.hwid_bound || info.hwid == g_machine_hwid;
+        // Принимаются только ключи, выданные под HWID этого ПК.
+        // Универсальные ключи без привязки не работают: их можно передать
+        // другому человеку.
+        return info.hwid_bound && info.hwid == g_machine_hwid;
     }
 
     int64_t ExpiryUnix()
@@ -323,6 +326,14 @@ namespace License
             // Неверный ключ — игра закрывается.
             g_phase = static_cast<int>(Phase::WrongKey);
             g_exit_at_unix = now + kWrongKeyExitDelay;
+            return;
+        }
+
+        // Универсальный ключ без привязки к ПК больше не принимается:
+        // такой ключ можно передать другому человеку.
+        if (!info.hwid_bound)
+        {
+            g_phase = static_cast<int>(Phase::UnboundKey);
             return;
         }
 

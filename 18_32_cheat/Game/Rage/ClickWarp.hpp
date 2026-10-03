@@ -1,9 +1,11 @@
 #pragma once
 
+struct IDirect3DDevice9;
+
 class ClickWarp
 {
 public:
-    // Рисует прицел по центру экрана и телепортирует игрока (или его машину)
-    // в точку под прицелом по нажатию СКМ.
-    static void Update();
+    // Свободный прицел: курсор ходит по экрану, СКМ телепортирует игрока
+    // (или его машину) в мировую точку под прицелом.
+    static void Update(IDirect3DDevice9* device);
 };
