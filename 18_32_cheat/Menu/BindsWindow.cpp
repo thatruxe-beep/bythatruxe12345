@@ -59,8 +59,22 @@ namespace
         if (vk == 0x28) return "DOWN";
         if (vk == 0x2D) return "INS";
         if (vk == 0x2E) return "DEL";
-        if (vk >= 0x30 && vk <= 0x39) return "0123456789" + (vk - 0x30);
-        if (vk >= 0x41 && vk <= 0x5A) return "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + (vk - 0x41);
+        if (vk >= 0x30 && vk <= 0x39)
+        {
+            // VK-коды цифр и букв совпадают с их ASCII-кодами: имя — один
+            // символ. (Раньше здесь была адресная арифметика по строковому
+            // литералу, и вместо одной буквы в бейдж шёл весь остаток
+            // алфавита, начиная с нужной.)
+            static char single[2]{};
+            single[0] = static_cast<char>(vk);
+            return single;
+        }
+        if (vk >= 0x41 && vk <= 0x5A)
+        {
+            static char single[2]{};
+            single[0] = static_cast<char>(vk);
+            return single;
+        }
         if (vk >= 0x70 && vk <= 0x7B)
         {
             // Отдельный буфер на каждую F-клавишу: несколько рядов с разными
