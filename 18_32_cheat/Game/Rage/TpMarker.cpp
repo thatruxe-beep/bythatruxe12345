@@ -1,0 +1,145 @@
+#include "Game/Features.h"
+
+#include "Game/Rage/TpMarker.hpp"
+
+#include <algorithm>
+
+namespace
+{
+    // SA 1.0 US: CMenuManager::m_nTargetBlipIndex — хендл метки, поставленной
+    // игроком на карте (M). Младшее слово — индекс в CRadar::ms_RadarTrace.
+    constexpr unsigned int kTargetBlipIndex = 0x00BA6774;
+    constexpr int kRadarTraceCount = 175;
+
+    bool FindWaypoint(CVector& out)
+    {
+        const unsigned int handle = *reinterpret_cast<unsigned int*>(kTargetBlipIndex);
+        const unsigned short index = static_cast<unsigned short>(handle & 0xFFFFu);
+
+        if (index != 0 && index < kRadarTraceCount)
+        {
+            tRadarTrace& blip = CRadar::ms_RadarTrace[index];
+
+            if (blip.m_bInUse)
+            {
+                out = blip.m_vecPos;
+                return true;
+            }
+        }
+
+        // Запасной обход: ищем блип-метку игрока среди всех трейсов.
+        for (int i = 0; i < kRadarTraceCount; ++i)
+        {
+            tRadarTrace& blip = CRadar::ms_RadarTrace[i];
+
+            if (blip.m_bInUse && blip.m_nRadarSprite == RADAR_SPRITE_WAYPOINT)
+            {
+                out = blip.m_vecPos;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool ResolveLanding(float x, float y, CVector& out)
+    {
+        bool found = false;
+        CEntity* groundEntity = nullptr;
+        const float groundZ = CWorld::FindGroundZFor3DCoord(x, y, 1000.0f, &found, &groundEntity);
+
+        if (found)
+        {
+            out = CVector(x, y, groundZ + 1.0f);
+            return true;
+        }
+
+        float waterZ = 0.0f;
+        if (CWaterLevel::GetWaterLevelNoWaves(x, y, 1000.0f, &waterZ))
+        {
+            out = CVector(x, y, waterZ + 1.0f);
+            return true;
+        }
+
+        return false;
+    }
+
+    void Teleport(CPed* ped, const CVector& pos)
+    {
+        if (CVehicle* vehicle = ped->m_pVehicle)
+        {
+            vehicle->SetPosn(pos.x, pos.y, pos.z);
+            vehicle->m_vecMoveSpeed = CVector(0.0f, 0.0f, 0.0f);
+            vehicle->m_vecTurnSpeed = CVector(0.0f, 0.0f, 0.0f);
+        }
+        else
+        {
+            ped->SetPosn(pos.x, pos.y, pos.z);
+            ped->m_vecMoveSpeed = CVector(0.0f, 0.0f, 0.0f);
+        }
+    }
+}
+
+void TpMarker::Update()
+{
+    // Отложенная посадка: метка далеко, коллизия ещё не стримнулась — висим
+    // высоко, пока под игроком не появится земля, и опускаем на неё.
+    static bool pending = false;
+    static CVector pendingPos{};
+    static unsigned int pendingUntil = 0;
+
+    if (pending)
+    {
+        CPed* ped = FindPlayerPed();
+
+        if (!ped)
+        {
+            pending = false;
+        }
+        else
+        {
+            CVector landing{};
+
+            if (ResolveLanding(pendingPos.x, pendingPos.y, landing))
+            {
+                Teleport(ped, landing);
+                pending = false;
+            }
+            else if (CTimer::m_snTimeInMilliseconds > pendingUntil)
+            {
+                pending = false;
+            }
+        }
+    }
+
+    static bool wasOn = false;
+    const bool on = g_cfg.tpmarker;
+
+    if (on && !wasOn)
+    {
+        // Функция разовая: срабатывает по нажатию и сразу выключается.
+        g_cfg.tpmarker = false;
+
+        CPed* ped = FindPlayerPed();
+        CVector marker{};
+
+        if (ped && FindWaypoint(marker))
+        {
+            CVector landing{};
+
+            if (ResolveLanding(marker.x, marker.y, landing))
+            {
+                Teleport(ped, landing);
+            }
+            else
+            {
+                Teleport(ped, CVector(marker.x, marker.y, 300.0f));
+                pending = true;
+                pendingPos = marker;
+                pendingUntil = CTimer::m_snTimeInMilliseconds + 2500u;
+            }
+        }
+    }
+
+    wasOn = on;
+}

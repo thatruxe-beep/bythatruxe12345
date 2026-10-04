@@ -6,41 +6,96 @@
 #include "Gfx/Fonts.hpp"
 
 #include <cmath>
+#include <cstdio>
 
 namespace
 {
-    void DrawWasdKey(ImDrawList* list, const ImVec2& min, float size,
-        char letter, ImU32 outline, ImU32 fill)
+    // Стрелки 18:32 — маленький фирменный циферблат.
+    void DrawClock(ImDrawList* list, const ImVec2& center, float radius,
+        ImU32 accent, ImU32 dim, float thickness)
     {
-        const ImVec2 max = min + ImVec2(size, size);
-        list->AddRectFilled(min, max, fill, 2.0f);
-        list->AddRect(min, max, outline, 2.0f, 0, ImMax(1.0f, size * 0.08f));
+        list->AddCircle(center, radius, dim, 24, thickness);
 
-        const float fontSize = size * 0.62f;
-        const char text[2] = { letter, '\0' };
-        const ImVec2 textSize = g_fonts.main->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, text);
-        const ImVec2 textPos(
-            min.x + (size - textSize.x) * 0.5f,
-            min.y + (size - textSize.y) * 0.5f - size * 0.03f);
+        const float hourAngle = (18.0f + 32.0f / 60.0f) / 12.0f * 2.0f * IM_PI;
+        const float minuteAngle = 32.0f / 60.0f * 2.0f * IM_PI;
 
-        // Font clipping is DPI-safe and guarantees that no glyph can leave
-        // its key cap even at 200% UI scale.
-        list->PushClipRect(min + ImVec2(size * 0.10f, size * 0.10f),
-            max - ImVec2(size * 0.10f, size * 0.10f), true);
-        list->AddText(g_fonts.main, fontSize, textPos, outline, text);
-        list->PopClipRect();
+        // Угол отсчитывается от 12 часов, ось Y экрана направлена вниз.
+        const ImVec2 hourEnd(
+            center.x + std::sin(hourAngle) * radius * 0.52f,
+            center.y - std::cos(hourAngle) * radius * 0.52f);
+        const ImVec2 minuteEnd(
+            center.x + std::sin(minuteAngle) * radius * 0.82f,
+            center.y - std::cos(minuteAngle) * radius * 0.82f);
+
+        list->AddLine(center, hourEnd, accent, thickness);
+        list->AddLine(center, minuteEnd, accent, thickness);
+        list->AddCircleFilled(center, radius * 0.10f, accent, 8);
     }
 
-    void DrawWasdIcon(ImDrawList* list, const ImVec2& pos, float scale, float alpha)
+    // Имя виртуальной клавиши для бейджа.
+    const char* KeyName(int vk)
     {
-        const float key = 9.0f * scale;
-        const float gap = 1.0f * scale;
-        const ImU32 outline = static_cast<ImU32>(g_cfg.accent.to_color((int)(255.0f * alpha)).as_imcolor());
-        const ImU32 fill = static_cast<ImU32>(g_cfg.accent.to_color((int)(40.0f * alpha)).as_imcolor());
-        DrawWasdKey(list, pos + ImVec2(key + gap, 0.0f), key, 'W', outline, fill);
-        DrawWasdKey(list, pos + ImVec2(0.0f, key + gap), key, 'A', outline, fill);
-        DrawWasdKey(list, pos + ImVec2(key + gap, key + gap), key, 'S', outline, fill);
-        DrawWasdKey(list, pos + ImVec2((key + gap) * 2.0f, key + gap), key, 'D', outline, fill);
+        if (vk == 0x01) return "LMB";
+        if (vk == 0x02) return "RMB";
+        if (vk == 0x04) return "MMB";
+        if (vk == 0x05) return "MB4";
+        if (vk == 0x06) return "MB5";
+        if (vk == 0x08) return "BKSP";
+        if (vk == 0x09) return "TAB";
+        if (vk == 0x0D) return "ENTER";
+        if (vk == 0x10) return "SHIFT";
+        if (vk == 0x11) return "CTRL";
+        if (vk == 0x12) return "ALT";
+        if (vk == 0x14) return "CAPS";
+        if (vk == 0x1B) return "ESC";
+        if (vk == 0x20) return "SPACE";
+        if (vk == 0x21) return "PGUP";
+        if (vk == 0x22) return "PGDN";
+        if (vk == 0x23) return "END";
+        if (vk == 0x24) return "HOME";
+        if (vk == 0x25) return "LEFT";
+        if (vk == 0x26) return "UP";
+        if (vk == 0x27) return "RIGHT";
+        if (vk == 0x28) return "DOWN";
+        if (vk == 0x2D) return "INS";
+        if (vk == 0x2E) return "DEL";
+        if (vk >= 0x30 && vk <= 0x39) return "0123456789" + (vk - 0x30);
+        if (vk >= 0x41 && vk <= 0x5A) return "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + (vk - 0x41);
+        if (vk >= 0x70 && vk <= 0x7B)
+        {
+            static char fn[4]{};
+            snprintf(fn, sizeof(fn), "F%d", vk - 0x6F);
+            return fn;
+        }
+        if (vk == 0xA0) return "LSHFT";
+        if (vk == 0xA1) return "RSHFT";
+        if (vk == 0xA2) return "LCTRL";
+        if (vk == 0xA3) return "RCTRL";
+        if (vk == 0xA4) return "LALT";
+        if (vk == 0xA5) return "RALT";
+        return "???";
+    }
+
+    // Клавиша-клавиатура: холд — залита акцентом, тогл — контурная.
+    void DrawKeycap(ImDrawList* list, const ImVec2& min, const ImVec2& max,
+        const char* text, bool hold, ImU32 accent, float alpha)
+    {
+        if (hold)
+        {
+            list->AddRectFilled(min, max, accent, 3.0f);
+        }
+        else
+        {
+            list->AddRectFilled(min, max, IM_COL32(16, 17, 21, (int)(200 * alpha)), 3.0f);
+            list->AddRect(min, max, IM_COL32(255, 255, 255, (int)(60 * alpha)), 3.0f);
+        }
+
+        const ImVec2 size = ImGui::CalcTextSize(text);
+        const ImVec2 pos(
+            min.x + (max.x - min.x - size.x) * 0.5f,
+            min.y + (max.y - min.y - size.y) * 0.5f - 1.0f);
+        list->AddText(pos, hold ? IM_COL32(12, 13, 16, (int)(255 * alpha))
+            : IM_COL32(235, 235, 240, (int)(235 * alpha)), text);
     }
 }
 
@@ -87,6 +142,7 @@ static std::string Bind_Display_Name(int i)
     case 36: return tr("ГМ авто", "Vehicle GM");
     case 37: return tr("Новый рапид", "New rapid");
     case 38: return tr("Клик-варп", "Click warp");
+    case 39: return tr("ТП на метку", "TP to marker");
     default: return "";
     }
 }
@@ -145,6 +201,7 @@ void Menu::DrawBinds()
         { &g_cfg.autorepair_bind, &g_cfg.autorepair, true },
         { &g_cfg.newrapid_bind, &g_cfg.newrapid, false },
         { &g_cfg.clickwarp_bind, &g_cfg.clickwarp, false },
+        { &g_cfg.tpmarker_bind, &g_cfg.tpmarker, false },
     };
 
     static const int kBindCount = sizeof(kBinds) / sizeof(kBinds[0]);
@@ -184,30 +241,31 @@ void Menu::DrawBinds()
     }
 
     const float s = GetScale();
-    const float row_h = 25.0f * s;
-    const float head_h = 38.0f * s;
-    const float rows_top = 46.0f * s;
-    const float pad_l = 16.0f * s;
-    const float pad_r = 8.0f * s;
+    const float row_h = 24.0f * s;
+    const float head_h = 36.0f * s;
+    const float rows_top = 42.0f * s;
+    const float pad_l = 14.0f * s;
+    const float pad_r = 12.0f * s;
     const float gap = 10.0f * s;
 
     ImGui::PushFont(g_fonts.main);
 
-    float max_name = 0.0f, max_mode = 0.0f;
+    float max_name = 0.0f;
+    float max_key = 0.0f;
 
     for (int vi = 0; vi < nvis; vi++)
     {
         int i = vis[vi];
         max_name = ImMax(max_name, ImGui::CalcTextSize(Bind_Display_Name(i).c_str()).x);
-        std::string m = kBinds[i].bind->mode == 1 ? tr("[ холд ]", "[ hold ]") : tr("[ тогл ]", "[ toggled ]");
-        max_mode = ImMax(max_mode, ImGui::CalcTextSize(m.c_str()).x);
+        max_key = ImMax(max_key, ImGui::CalcTextSize(KeyName(kBinds[i].bind->key)).x);
     }
 
-    const float content_w = ImMax(pad_l + max_name + gap + max_mode + pad_r, 150.0f * s);
+    const float keycap_w = ImMax(max_key + 14.0f * s, 34.0f * s);
+    const float content_w = ImMax(pad_l + max_name + gap + keycap_w + pad_r, 170.0f * s);
     const float win_w = content_w + 8.0f * s;
 
     static float win_h_anim = 40.0f;
-    float win_h_target = rows_top + row_h * nvis + 6.0f * s;
+    float win_h_target = rows_top + row_h * nvis + 4.0f * s;
     float win_t = ImGui::GetIO().DeltaTime * 10.0f;
 
     if (win_t > 1.0f)
@@ -235,6 +293,10 @@ void Menu::DrawBinds()
     ImDrawList* list = ImGui::GetWindowDrawList();
     list->Flags |= ImDrawListFlags_AntiAliasedFill | ImDrawListFlags_AntiAliasedLines;
 
+    const c_color accent = g_cfg.accent.to_color();
+    const ImU32 accentU32 = static_cast<ImU32>(accent.new_alpha((int)(255.0f * bind_alpha)).as_imcolor());
+    const float a = bind_alpha;
+
     ImVec2 window_pos = ImGui::GetWindowPos() + ImVec2(4.0f * s, 1.0f * s);
     float window_alpha = 255.0f * bind_alpha;
     float win_h = win_h_anim;
@@ -259,51 +321,60 @@ void Menu::DrawBinds()
         }
     }
 
-    Blur::Create(list, window_pos, window_pos + ImVec2(content_w, head_h), ImColor(255, 255, 255, (int)window_alpha), 4.0f * s, ImDrawCornerFlags_Top);
+    // Панель: тёмная подложка со скруглением 3 и тонкая рамка с акцентной
+    // акцентная левая кромка.
+    Blur::Create(list, window_pos, window_pos + ImVec2(content_w, win_h),
+        ImColor(70, 70, 74, (int)window_alpha), 3.0f * s, 15);
+    list->AddRect(window_pos, window_pos + ImVec2(content_w, win_h),
+        IM_COL32(90, 90, 96, (int)(110 * a)), 3.0f * s);
+    list->AddRectFilled(window_pos, window_pos + ImVec2(3.0f * s, win_h), accentU32);
 
-    const std::string title = tr("Бинды", "Binds");
-    ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
-    const float icon_w = 29.0f * s;
-    const float icon_h = 19.0f * s;
-    const float icon_gap = 7.0f * s;
-    float head_x = window_pos.x + (content_w - (icon_w + icon_gap + title_size.x)) * 0.5f;
+    // Шапка: циферблат 18:32 + счётчик активных биндов.
+    DrawClock(list, window_pos + ImVec2(16.0f * s, head_h * 0.5f), 7.5f * s,
+        accentU32, IM_COL32(255, 255, 255, (int)(150 * a)), 1.6f * s);
 
-    DrawWasdIcon(list, ImVec2(head_x,
-        window_pos.y + (head_h - icon_h) * 0.5f), s, bind_alpha);
+    const std::string title = "18:32";
+    const ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
+    list->AddText(ImVec2(window_pos.x + 29.0f * s, window_pos.y + (head_h - title_size.y) * 0.5f),
+        c_color(245, 245, 248, (int)(255 * a)).as_imcolor(), title.c_str());
 
-    list->AddText(ImVec2(head_x + icon_w + icon_gap,
-        window_pos.y + (head_h - title_size.y) * 0.5f),
-        c_color(255, 255, 255, (int)window_alpha).as_imcolor(), title.c_str());
+    char counter[16]{};
+    snprintf(counter, sizeof(counter), "x%d", nvis);
+    const ImVec2 counter_size = ImGui::CalcTextSize(counter);
+    list->AddText(ImVec2(window_pos.x + content_w - pad_r - counter_size.x,
+        window_pos.y + (head_h - counter_size.y) * 0.5f),
+        accentU32, counter);
 
-    list->AddLine(window_pos + ImVec2(0, head_h - 1.0f * s), window_pos + ImVec2(content_w, head_h - 1.0f * s), c_color(255, 255, 255, (int)(12.75f * bind_alpha)).as_imcolor());
+    list->AddLine(window_pos + ImVec2(0, head_h), window_pos + ImVec2(content_w, head_h),
+        IM_COL32(255, 255, 255, (int)(14 * a)));
 
-    Blur::Create(list, window_pos + ImVec2(0, head_h), window_pos + ImVec2(content_w, win_h), ImColor(100, 100, 100, (int)window_alpha), 4.0f * s, ImDrawCornerFlags_Bot);
-
-    list->AddRect(window_pos, window_pos + ImVec2(content_w, win_h), c_color(100, 100, 100, (int)(100.0f * bind_alpha)).as_imcolor(), 4.0f * s);
-
-    ImVec2 prev_pos = ImGui::GetCursorPos();
-    float max_pos = 0.0f;
-
+    // Строки: имя слева, клавиша-клавиатура справа.
     for (int vi = 0; vi < nvis; vi++)
     {
         int i = vis[vi];
-        std::string name = Bind_Display_Name(i);
-        ImGui::SetCursorPos(ImVec2(pad_l, rows_top + max_pos));
+        const std::string name = Bind_Display_Name(i);
+        const float row_y = window_pos.y + rows_top + row_h * vi;
+        const float text_y = row_y + (row_h - ImGui::GetTextLineHeight()) * 0.5f;
 
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, bind_alpha));
-        ImGui::Text(name.c_str());
-        ImGui::PopStyleColor();
+        if (vi > 0)
+        {
+            list->AddLine(
+                ImVec2(window_pos.x + pad_l * 0.5f, row_y),
+                ImVec2(window_pos.x + content_w - pad_r * 0.5f, row_y),
+                IM_COL32(255, 255, 255, (int)(9 * a)));
+        }
 
-        std::string bind_type = kBinds[i].bind->mode == 1 ? tr("[ холд ]", "[ hold ]") : tr("[ тогл ]", "[ toggled ]");
-        float textsize = ImGui::CalcTextSize(bind_type.c_str()).x;
-        float row_y = ImGui::GetItemRectMin().y;
+        list->AddText(ImVec2(window_pos.x + pad_l, text_y),
+            c_color(238, 238, 242, (int)(245 * a)).as_imcolor(), name.c_str());
 
-        list->AddText(ImVec2(window_pos.x + content_w - pad_r - textsize, row_y), c_color(255, 255, 255, (int)(102.0f * bind_alpha)).as_imcolor(), bind_type.c_str());
-
-        max_pos += row_h;
+        const char* key = KeyName(kBinds[i].bind->key);
+        const bool hold = kBinds[i].bind->mode == 1;
+        const float cap_h = 16.0f * s;
+        DrawKeycap(list,
+            ImVec2(window_pos.x + content_w - pad_r - keycap_w, row_y + (row_h - cap_h) * 0.5f),
+            ImVec2(window_pos.x + content_w - pad_r, row_y + (row_h + cap_h) * 0.5f),
+            key, hold, accentU32, a);
     }
-
-    ImGui::SetCursorPos(prev_pos);
 
     list->Flags &= ~(ImDrawListFlags_AntiAliasedFill | ImDrawListFlags_AntiAliasedLines);
 

@@ -23,6 +23,10 @@
 #include "CWeather.h"
 #include "CWeaponInfo.h"
 #include "CWorld.h"
+#include "CWaterLevel.h"
+#include "CRadar.h"
+#include "CPedDamageResponse.h"
+#include "CPedDamageResponseCalculator.h"
 
 #include "ePedBones.h"
 #include "eWeaponType.h"
@@ -33,6 +37,7 @@
 #include "Game/Rage/NewRapid.hpp"
 #include "Game/Rage/ClickWarp.hpp"
 #include "Game/Rage/RandomGodMode.hpp"
+#include "Game/Rage/TpMarker.hpp"
 #include "Game/Legit/FastCrosshair.hpp"
 #include "Game/Rage/NoRecoil.hpp"
 #include "Game/Legit/NoSpread.hpp"

@@ -248,6 +248,8 @@ void Esp::Update()
         ImU32 pedBoxColor = boxColor;
         ImU32 pedBoxFill = boxFill;
         ImU32 pedSkeletonColor = skeletonColor;
+        ImU32 pedTracerColor = tracerColor;
+        ImU32 pedTextColor = textColor;
 
         if (useVisColor)
         {
@@ -264,13 +266,15 @@ void Esp::Update()
             pedBoxColor = static_cast<ImU32>(visColor.to_color().as_imcolor());
             pedBoxFill = static_cast<ImU32>(visColor.to_color(18).as_imcolor());
             pedSkeletonColor = pedBoxColor;
+            pedTracerColor = pedBoxColor;
+            pedTextColor = pedBoxColor;
         }
 
         if (g_cfg.wh_flags & WH_SNAP)
         {
             DrawOutlinedLine(draw,
                 ImVec2(displaySize.x * 0.5f, displaySize.y - 1.0f),
-                ImVec2(centerX, boxMax.y), tracerColor, 1.5f);
+                ImVec2(centerX, boxMax.y), pedTracerColor, 1.5f);
         }
 
         if (g_cfg.wh_flags & WH_BOX)
@@ -316,14 +320,14 @@ void Esp::Update()
             const int armor = (int)std::lround(std::clamp(ped->m_fArmour, 0.0f, kMaximumArmor));
             snprintf(values, sizeof(values), "HP: %d  Armor: %d", health, armor);
             const float y = boxMin.y - ImGui::GetTextLineHeight() - 4.0f * scale;
-            DrawCenteredText(draw, centerX, y, textColor, values, true);
+            DrawCenteredText(draw, centerX, y, pedTextColor, values, true);
         }
 
         if (g_cfg.wh_flags & WH_DIST)
         {
             char value[24]{};
             snprintf(value, sizeof(value), "%d m", (int)std::lround(distance));
-            DrawCenteredText(draw, centerX, boxMax.y + 3.0f * scale, textColor, value);
+            DrawCenteredText(draw, centerX, boxMax.y + 3.0f * scale, pedTextColor, value);
         }
 
         if (g_cfg.wh_flags & WH_WEAPON)
@@ -339,7 +343,7 @@ void Esp::Update()
                     {
                         y += ImGui::GetTextLineHeight() + 2.0f * scale;
                     }
-                    DrawCenteredText(draw, centerX, y, textColor, weaponName, true);
+                    DrawCenteredText(draw, centerX, y, pedTextColor, weaponName, true);
                 }
             }
         }

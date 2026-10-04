@@ -285,6 +285,8 @@ bool config_t::Save(const std::string& name)
     WriteBool(body, "clickwarp", clickwarp);
     WriteInt(body, "clickwarp_key", clickwarp_bind.key);
     WriteInt(body, "clickwarp_mode", clickwarp_bind.mode);
+    WriteInt(body, "tpmarker_key", tpmarker_bind.key);
+    WriteInt(body, "tpmarker_mode", tpmarker_bind.mode);
 
     WriteInt(body, "wh_flags", (int)wh_flags);
     WriteColor(body, "whcol", whcol);
@@ -519,6 +521,8 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "clickwarp") { ReadBool(value, clickwarp); }
     else if (key == "clickwarp_key") { ReadInt(value, clickwarp_bind.key); }
     else if (key == "clickwarp_mode") { ReadInt(value, clickwarp_bind.mode); }
+    else if (key == "tpmarker_key") { ReadInt(value, tpmarker_bind.key); }
+    else if (key == "tpmarker_mode") { ReadInt(value, tpmarker_bind.mode); }
 
     else if (key == "wh_flags") { int t = 15; if (ReadInt(value, t)) { wh_flags = (unsigned int)t; } }
     else if (key == "whcol") { ReadColor(value, whcol); }

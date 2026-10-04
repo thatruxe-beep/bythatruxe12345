@@ -189,7 +189,7 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     Esp::Update();
 
     GodMode::Update();
-    RandomGodMode::Update();
+    TpMarker::Update();
     NoFall::Update();
     FastRun::Update();
     SpeedHack::Update();

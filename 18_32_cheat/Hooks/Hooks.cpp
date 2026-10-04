@@ -99,6 +99,7 @@ void Hooks::InstallHooks()
     Collision::InstallHook();
     Present::InstallHook();
     Reset::InstallHook();
+    RandomGodMode::InstallHook();
     VIRTUALIZER_END;
 }
 
@@ -123,6 +124,7 @@ void Hooks::RemoveHooks()
     LdrDll::RemoveHook();
     Collision::RemoveHook();
     ForceCursor::RemoveHook();
+    RandomGodMode::RemoveHook();
 
     const MH_STATUS status = MH_Uninitialize();
     if (status != MH_OK && status != MH_ERROR_NOT_INITIALIZED)

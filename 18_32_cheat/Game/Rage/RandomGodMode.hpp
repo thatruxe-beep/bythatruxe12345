@@ -3,5 +3,6 @@
 class RandomGodMode
 {
 public:
-    static void Update();
+    static void InstallHook();
+    static void RemoveHook();
 };

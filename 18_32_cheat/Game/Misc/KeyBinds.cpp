@@ -53,6 +53,7 @@ void KeyBinds::Update()
     ProcessBind(g_cfg.rapidfire_bind, g_cfg.rapidfire);
     ProcessBind(g_cfg.newrapid_bind, g_cfg.newrapid);
     ProcessBind(g_cfg.clickwarp_bind, g_cfg.clickwarp);
+    ProcessBind(g_cfg.tpmarker_bind, g_cfg.tpmarker);
     ProcessBind(g_cfg.gamespeed_bind, g_cfg.gamespeed);
     ProcessBind(g_cfg.fastrot_bind, g_cfg.fastrot);
     ProcessBind(g_cfg.nobikefall_bind, g_cfg.nobikefall);

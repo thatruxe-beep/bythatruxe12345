@@ -79,6 +79,8 @@ struct config_t
     float rapidfire_multiplier = 1.0f;
     bool clickwarp = false;
     keybind_t clickwarp_bind{};
+    bool tpmarker = false;
+    keybind_t tpmarker_bind{};
     unsigned int wh_flags = 55;
     c_float_color whcol = c_float_color(168, 168, 255);
     c_float_color hpcol = c_float_color(110, 220, 110);
