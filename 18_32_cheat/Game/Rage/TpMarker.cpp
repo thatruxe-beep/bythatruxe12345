@@ -13,41 +13,33 @@ namespace
 
     bool FindWaypoint(CVector& out)
     {
-        // Формат хендла блипа (CRadar::GetNewUniqueBlipIndex, gta_sa 1.0 US):
+        // Метку ставит родной фронтенд SA (карта в паузе): он вызывает
+        // CRadar::SetCoordBlip и записывает хендл в CMenuManager::m_nTargetBlipIndex
+        // (0xBA6774). Формат хендла (GetNewUniqueBlipIndex):
         //   handle = index | (counter << 16)
-        // CRadar::GetActualBlipArrayIndex требует совпадения counter с
-        // m_nCounter трейса. Без этой проверки устаревший хендл указывает на
-        // чужой блип, занявший слот (например, серверный блип автосалона) —
-        // из-за этого телепорт уводил не на метку.
+        // и валидация повторяет каноничную из plugin-sdk GPS / SAMP-GPS:
+        // счётчик хендла обязан совпадать с m_nCounter трейса, а блип должен
+        // отображаться. Никакого перебора всех трейсов: сервер может создать
+        // свой блип со спрайтом waypoint (так было с автосалоном), и обход
+        // телепортировал игрока на него.
         const unsigned int handle = *reinterpret_cast<unsigned int*>(kTargetBlipIndex);
         const unsigned int index = handle & 0xFFFFu;
         const unsigned int counter = (handle >> 16) & 0xFFFFu;
 
-        if (index != 0 && index < kRadarTraceCount)
+        if (index == 0 || index >= kRadarTraceCount)
         {
-            tRadarTrace& blip = CRadar::ms_RadarTrace[index];
-
-            if (blip.m_bInUse
-                && blip.m_nCounter == counter
-                && blip.m_nRadarSprite == RADAR_SPRITE_WAYPOINT)
-            {
-                out = blip.m_vecPos;
-                return true;
-            }
+            return false;
         }
 
-        // Запасной обход: метка с карты всегда имеет спрайт waypoint.
-        // Серверные блипы создаются при старте ресурсов (низкие индексы),
-        // метка игрока — позже, поэтому берём последнее совпадение.
-        for (int i = kRadarTraceCount - 1; i >= 0; --i)
-        {
-            tRadarTrace& blip = CRadar::ms_RadarTrace[i];
+        tRadarTrace& blip = CRadar::ms_RadarTrace[index];
 
-            if (blip.m_bInUse && blip.m_nRadarSprite == RADAR_SPRITE_WAYPOINT)
-            {
-                out = blip.m_vecPos;
-                return true;
-            }
+        if (blip.m_bInUse
+            && blip.m_nCounter == counter
+            && blip.m_nBlipDisplay != 0
+            && blip.m_nRadarSprite == RADAR_SPRITE_WAYPOINT)
+        {
+            out = blip.m_vecPos;
+            return true;
         }
 
         return false;

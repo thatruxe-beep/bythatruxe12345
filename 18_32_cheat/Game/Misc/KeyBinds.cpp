@@ -41,6 +41,7 @@ void KeyBinds::Update()
     ProcessBind(g_cfg.nofall_bind, g_cfg.nofall);
     ProcessBind(g_cfg.fastbeg_bind, g_cfg.fastbeg);
     ProcessBind(g_cfg.wh_bind, g_cfg.wh);
+    ProcessBind(g_cfg.adminmode_bind, g_cfg.adminmode);
     ProcessBind(g_cfg.speedhack_bind, g_cfg.speedhack);
     ProcessBind(g_cfg.airbreake_bind, g_cfg.airbreake);
     ProcessBind(g_cfg.changemodel_bind, g_cfg.changemodel);

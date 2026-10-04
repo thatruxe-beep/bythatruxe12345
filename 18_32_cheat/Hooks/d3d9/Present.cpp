@@ -187,6 +187,7 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     CamHack::Update();
 
     Esp::Update();
+    AdminMode::Update();
 
     GodMode::Update();
     TpMarker::Update();

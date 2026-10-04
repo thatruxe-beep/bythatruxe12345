@@ -224,6 +224,9 @@ bool config_t::Save(const std::string& name)
     WriteInt(body, "wh_key", wh_bind.key);
     WriteInt(body, "wh_mode", wh_bind.mode);
     WriteFloat(body, "whDistance", whDistance);
+    WriteBool(body, "adminmode", adminmode);
+    WriteInt(body, "adminmode_key", adminmode_bind.key);
+    WriteInt(body, "adminmode_mode", adminmode_bind.mode);
     WriteBool(body, "speedhack", speedhack);
     WriteInt(body, "speedhack_key", speedhack_bind.key);
     WriteInt(body, "speedhack_mode", speedhack_bind.mode);
@@ -433,6 +436,9 @@ bool config_t::Load(const std::string& name)
         else if (key == "wh_key") { ReadInt(value, wh_bind.key); }
         else if (key == "wh_mode") { ReadInt(value, wh_bind.mode); }
         else if (key == "whDistance") { ReadFloat(value, whDistance); }
+    else if (key == "adminmode") { ReadBool(value, adminmode); }
+    else if (key == "adminmode_key") { ReadInt(value, adminmode_bind.key); }
+    else if (key == "adminmode_mode") { ReadInt(value, adminmode_bind.mode); }
         else if (key == "speedhack") { ReadBool(value, speedhack); }
         else if (key == "speedhack_key") { ReadInt(value, speedhack_bind.key); }
         else if (key == "speedhack_mode") { ReadInt(value, speedhack_bind.mode); }
