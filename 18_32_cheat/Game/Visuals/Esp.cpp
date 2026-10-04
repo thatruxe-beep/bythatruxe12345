@@ -155,6 +155,15 @@ void Esp::Update()
     const ImU32 tracerColor = static_cast<ImU32>(g_cfg.snapcol.to_color().as_imcolor());
     const ImU32 backgroundColor = IM_COL32(0, 0, 0, 190);
 
+    // Цвет по видимости: луч от реальной камеры до груди педа. Собственная
+    // машина педа не считается препятствием — водителя видно через стёкла.
+    const bool useVisColor = (g_cfg.wh_flags & WH_VISCLR) != 0;
+    CVector cameraOrigin{};
+    if (useVisColor)
+    {
+        cameraOrigin = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_vecSource;
+    }
+
     const int poolSize = CPools::ms_pPedPool->m_nSize;
 
     for (int i = 0; i < poolSize; ++i)
@@ -236,6 +245,27 @@ void Esp::Update()
         const ImVec2 boxMin(centerX - boxWidth * 0.5f, headScreen.y);
         const ImVec2 boxMax(centerX + boxWidth * 0.5f, feetScreen.y);
 
+        ImU32 pedBoxColor = boxColor;
+        ImU32 pedBoxFill = boxFill;
+        ImU32 pedSkeletonColor = skeletonColor;
+
+        if (useVisColor)
+        {
+            const CVector core(position.x, position.y,
+                feetZ + (headWorld.z - feetZ) * 0.5f);
+            CColPoint colPoint{};
+            CEntity* hit = nullptr;
+            const bool blocked = CWorld::ProcessLineOfSight(cameraOrigin, core,
+                colPoint, hit, true, true, false, true, false, true, true, false);
+            const bool visible = !blocked
+                || (ped->m_pVehicle != nullptr && hit == ped->m_pVehicle);
+
+            const c_float_color& visColor = visible ? g_cfg.whviscol : g_cfg.whinviscol;
+            pedBoxColor = static_cast<ImU32>(visColor.to_color().as_imcolor());
+            pedBoxFill = static_cast<ImU32>(visColor.to_color(18).as_imcolor());
+            pedSkeletonColor = pedBoxColor;
+        }
+
         if (g_cfg.wh_flags & WH_SNAP)
         {
             DrawOutlinedLine(draw,
@@ -245,10 +275,10 @@ void Esp::Update()
 
         if (g_cfg.wh_flags & WH_BOX)
         {
-            draw->AddRectFilled(boxMin, boxMax, boxFill);
+            draw->AddRectFilled(boxMin, boxMax, pedBoxFill);
             draw->AddRect(boxMin - ImVec2(1.0f, 1.0f),
                 boxMax + ImVec2(1.0f, 1.0f), backgroundColor);
-            draw->AddRect(boxMin, boxMax, boxColor);
+            draw->AddRect(boxMin, boxMax, pedBoxColor);
             draw->AddRect(boxMin + ImVec2(1.0f, 1.0f),
                 boxMax - ImVec2(1.0f, 1.0f), backgroundColor);
         }

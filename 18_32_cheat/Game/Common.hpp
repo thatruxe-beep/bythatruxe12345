@@ -20,6 +20,7 @@ constexpr unsigned int WH_SKELETON = 1u << 4;
 constexpr unsigned int WH_SNAP = 1u << 5;
 constexpr unsigned int WH_TEXT = 1u << 6;
 constexpr unsigned int WH_WEAPON = 1u << 7;
+constexpr unsigned int WH_VISCLR = 1u << 8;
 constexpr unsigned int NC_VEH = 1u << 0;
 constexpr unsigned int NC_PED = 1u << 1;
 constexpr unsigned int NC_OBJ = 1u << 2;

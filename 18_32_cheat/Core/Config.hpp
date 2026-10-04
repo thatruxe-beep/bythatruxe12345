@@ -86,6 +86,8 @@ struct config_t
     c_float_color distcol = c_float_color(255, 255, 255);
     c_float_color skelcol = c_float_color(255, 255, 255);
     c_float_color snapcol = c_float_color(0, 255, 0);
+    c_float_color whviscol = c_float_color(140, 255, 140);
+    c_float_color whinviscol = c_float_color(255, 110, 110);
     bool gamespeed = false;
     keybind_t gamespeed_bind{};
     float gamespeedval = 1.0f;

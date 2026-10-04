@@ -63,6 +63,7 @@ void Menu::DrawVisuals()
         flagCheckbox(tr("Оружие", "Weapon"), WH_WEAPON);
         flagCheckbox(tr("Скелет", "Skeleton"), WH_SKELETON);
         flagCheckbox(tr("Трассер снизу", "Bottom tracer"), WH_SNAP);
+        flagCheckbox(tr("Цвет по видимости", "Visibility color"), WH_VISCLR);
 
         bool colorChanged = false;
         if (g_cfg.wh_flags & WH_BOX) colorChanged |= ColorPicker(tr("Цвет бокса", "Box color"), g_cfg.whcol);
@@ -71,6 +72,11 @@ void Menu::DrawVisuals()
         if (g_cfg.wh_flags & (WH_TEXT | WH_DIST)) colorChanged |= ColorPicker(tr("Цвет текста", "Text color"), g_cfg.distcol);
         if (g_cfg.wh_flags & WH_SKELETON) colorChanged |= ColorPicker(tr("Цвет скелета", "Skeleton color"), g_cfg.skelcol);
         if (g_cfg.wh_flags & WH_SNAP) colorChanged |= ColorPicker(tr("Цвет трассера", "Tracer color"), g_cfg.snapcol);
+        if (g_cfg.wh_flags & WH_VISCLR)
+        {
+            colorChanged |= ColorPicker(tr("Видимые", "Visible"), g_cfg.whviscol);
+            colorChanged |= ColorPicker(tr("За стеной", "Occluded"), g_cfg.whinviscol);
+        }
         if (colorChanged) SaveGeneralConfig();
 
         widget_alpha_mul = previousAlpha;
