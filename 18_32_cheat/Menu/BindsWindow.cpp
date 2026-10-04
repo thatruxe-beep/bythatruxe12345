@@ -63,9 +63,12 @@ namespace
         if (vk >= 0x41 && vk <= 0x5A) return "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + (vk - 0x41);
         if (vk >= 0x70 && vk <= 0x7B)
         {
-            static char fn[4]{};
-            snprintf(fn, sizeof(fn), "F%d", vk - 0x6F);
-            return fn;
+            // Отдельный буфер на каждую F-клавишу: несколько рядов с разными
+            // F-клавишами не должны затирать имя друг друга.
+            static char fn[12][4]{};
+            char* buf = fn[vk - 0x70];
+            snprintf(buf, 4, "F%d", vk - 0x6F);
+            return buf;
         }
         if (vk == 0xA0) return "LSHFT";
         if (vk == 0xA1) return "RSHFT";
@@ -288,7 +291,11 @@ void Menu::DrawBinds()
     ImGui::SetNextWindowSize(ImVec2(win_w, win_h_anim));
     ImGui::SetNextWindowBgAlpha(0.0f);
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-    ImGui::Begin("##binds_window", &opened, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing);
+    // AlwaysAutoResize убран сознательно: панель рисуется целиком через
+    // draw_list без ImGui-айтемов, и при автоподборе размера окно схлопывается
+    // до нуля, а его клип-рект вырезает всю отрисовку. Фиксированный размер
+    // из SetNextWindowSize держит клип на всю панель.
+    ImGui::Begin("##binds_window", &opened, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing);
 
     ImDrawList* list = ImGui::GetWindowDrawList();
     list->Flags |= ImDrawListFlags_AntiAliasedFill | ImDrawListFlags_AntiAliasedLines;

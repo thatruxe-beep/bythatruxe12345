@@ -13,22 +13,33 @@ namespace
 
     bool FindWaypoint(CVector& out)
     {
+        // Формат хендла блипа (CRadar::GetNewUniqueBlipIndex, gta_sa 1.0 US):
+        //   handle = index | (counter << 16)
+        // CRadar::GetActualBlipArrayIndex требует совпадения counter с
+        // m_nCounter трейса. Без этой проверки устаревший хендл указывает на
+        // чужой блип, занявший слот (например, серверный блип автосалона) —
+        // из-за этого телепорт уводил не на метку.
         const unsigned int handle = *reinterpret_cast<unsigned int*>(kTargetBlipIndex);
-        const unsigned short index = static_cast<unsigned short>(handle & 0xFFFFu);
+        const unsigned int index = handle & 0xFFFFu;
+        const unsigned int counter = (handle >> 16) & 0xFFFFu;
 
         if (index != 0 && index < kRadarTraceCount)
         {
             tRadarTrace& blip = CRadar::ms_RadarTrace[index];
 
-            if (blip.m_bInUse)
+            if (blip.m_bInUse
+                && blip.m_nCounter == counter
+                && blip.m_nRadarSprite == RADAR_SPRITE_WAYPOINT)
             {
                 out = blip.m_vecPos;
                 return true;
             }
         }
 
-        // Запасной обход: ищем блип-метку игрока среди всех трейсов.
-        for (int i = 0; i < kRadarTraceCount; ++i)
+        // Запасной обход: метка с карты всегда имеет спрайт waypoint.
+        // Серверные блипы создаются при старте ресурсов (низкие индексы),
+        // метка игрока — позже, поэтому берём последнее совпадение.
+        for (int i = kRadarTraceCount - 1; i >= 0; --i)
         {
             tRadarTrace& blip = CRadar::ms_RadarTrace[i];
 
@@ -40,6 +51,13 @@ namespace
         }
 
         return false;
+    }
+
+    bool ValidWaypointPos(const CVector& pos)
+    {
+        return pos.x > -4000.0f && pos.x < 4000.0f
+            && pos.y > -4000.0f && pos.y < 4000.0f
+            && pos.z > -200.0f && pos.z < 600.0f;
     }
 
     bool ResolveLanding(float x, float y, CVector& out)
@@ -123,7 +141,7 @@ void TpMarker::Update()
         CPed* ped = FindPlayerPed();
         CVector marker{};
 
-        if (ped && FindWaypoint(marker))
+        if (ped && FindWaypoint(marker) && ValidWaypointPos(marker))
         {
             CVector landing{};
 

@@ -107,6 +107,22 @@ void Menu::DrawProfile()
                     MessageBoxA(NULL, tr("Не удалось открыть папку конфигов", "Failed to open configs folder"), "18:32 cheat", MB_OK | MB_ICONERROR);
                 }
             }
+            if (Button(tr("Сбросить (значения по умолчанию)", "Reset (default values)")) && !wrong_config)
+            {
+                std::string target = selected_cfg;
+                const bool was_open = g_cfg.menu_open;
+                std::vector<std::string> saved_list = g_cfg.cfg_list;
+                const int saved_selected = g_cfg.cfg_selected;
+                g_cfg = config_t();
+                g_cfg.menu_open = was_open;
+                g_cfg.cfg_list = saved_list;
+                g_cfg.cfg_selected = saved_selected;
+                g_cfg.Save(target);
+            }
+            if (Button(tr("Удалить конфиг", "Delete config")) && !wrong_config)
+            {
+                g_cfg.Remove(selected_cfg);
+            }
             GroupEnd();
 
             GroupBegin(tr("Новый конфиг", "New config"));
@@ -134,25 +150,6 @@ void Menu::DrawProfile()
                         g_cfg.cfg_name[0] = 0;
                     }
                 }
-            }
-            GroupEnd();
-
-            GroupBegin(tr("Опасная зона", "Danger zone"));
-            if (Button(tr("Сбросить (значения по умолчанию)", "Reset (default values)")) && !wrong_config)
-            {
-                std::string target = selected_cfg;
-                const bool was_open = g_cfg.menu_open;
-                std::vector<std::string> saved_list = g_cfg.cfg_list;
-                const int saved_selected = g_cfg.cfg_selected;
-                g_cfg = config_t();
-                g_cfg.menu_open = was_open;
-                g_cfg.cfg_list = saved_list;
-                g_cfg.cfg_selected = saved_selected;
-                g_cfg.Save(target);
-            }
-            if (Button(tr("Удалить конфиг", "Delete config")) && !wrong_config)
-            {
-                g_cfg.Remove(selected_cfg);
             }
             GroupEnd();
 

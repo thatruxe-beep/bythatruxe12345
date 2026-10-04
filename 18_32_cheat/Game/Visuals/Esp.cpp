@@ -405,7 +405,7 @@ void Esp::Update()
                         && IsInside(secondScreen, skeletonMin, skeletonMax)
                         && segmentLengthSq <= maxSegmentLength * maxSegmentLength)
                     {
-                        DrawOutlinedLine(draw, firstScreen, secondScreen, skeletonColor, 1.0f);
+                        DrawOutlinedLine(draw, firstScreen, secondScreen, pedSkeletonColor, 1.0f);
                     }
                 }
             }
