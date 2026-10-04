@@ -90,6 +90,18 @@ namespace
         if (vk == 0xA3) return "RCTRL";
         if (vk == 0xA4) return "LALT";
         if (vk == 0xA5) return "RALT";
+        // Знаковые клавиши (OEM): имя — сам символ.
+        if (vk == 0xBA) return ";";
+        if (vk == 0xBB) return "=";
+        if (vk == 0xBC) return ",";
+        if (vk == 0xBD) return "-";
+        if (vk == 0xBE) return ".";
+        if (vk == 0xBF) return "/";
+        if (vk == 0xC0) return "`";
+        if (vk == 0xDB) return "[";
+        if (vk == 0xDC) return "\\";
+        if (vk == 0xDD) return "]";
+        if (vk == 0xDE) return "'";
         return "???";
     }
 
