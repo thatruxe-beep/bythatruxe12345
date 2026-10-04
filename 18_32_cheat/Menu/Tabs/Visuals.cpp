@@ -37,8 +37,6 @@ void Menu::DrawVisuals()
             }
             widget_alpha_mul = previousAlpha;
         }
-        BindableCheckbox("adminmode", tr("Админ мод", "Admin mode"),
-            &g_cfg.adminmode, &g_cfg.adminmode_bind);
         GroupEnd();
 
         ImGui::NextColumn();

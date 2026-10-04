@@ -243,7 +243,6 @@
     <ClCompile Include="Game\Misc\Aspect.cpp" />
 
     <ClCompile Include="Game\Visuals\Esp.cpp" />
-    <ClCompile Include="Game\Visuals\AdminMode.cpp" />
 
     <ClCompile Include="Game\Visuals\Fov.cpp" />
 
@@ -419,7 +418,6 @@
     <ClInclude Include="Game\Misc\Aspect.hpp" />
 
     <ClInclude Include="Game\Visuals\Esp.hpp" />
-    <ClInclude Include="Game\Visuals\AdminMode.hpp" />
 
     <ClInclude Include="Game\Visuals\Fov.hpp" />
 

@@ -172,7 +172,6 @@ static std::string Bind_Display_Name(int i)
     case 37: return tr("Новый рапид", "New rapid");
     case 38: return tr("Клик-варп", "Click warp");
     case 39: return tr("ТП на метку", "TP to marker");
-    case 40: return tr("Админ мод", "Admin mode");
     default: return "";
     }
 }
@@ -232,7 +231,6 @@ void Menu::DrawBinds()
         { &g_cfg.newrapid_bind, &g_cfg.newrapid, false },
         { &g_cfg.clickwarp_bind, &g_cfg.clickwarp, false },
         { &g_cfg.tpmarker_bind, &g_cfg.tpmarker, false },
-        { &g_cfg.adminmode_bind, &g_cfg.adminmode, false },
     };
 
     static const int kBindCount = sizeof(kBinds) / sizeof(kBinds[0]);

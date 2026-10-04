@@ -351,9 +351,6 @@
     <ClCompile Include="Game\Rage\TpMarker.cpp">
       <Filter>Game\Rage</Filter>
     </ClCompile>
-    <ClCompile Include="Game\Visuals\AdminMode.cpp">
-      <Filter>Game\Visuals</Filter>
-    </ClCompile>
     <ClCompile Include="Game\Misc\AutoRepair.cpp">
 
       <Filter>Game\Misc</Filter>
@@ -810,9 +807,6 @@
     </ClInclude>
     <ClInclude Include="Game\Rage\TpMarker.hpp">
       <Filter>Game\Rage</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Visuals\AdminMode.hpp">
-      <Filter>Game\Visuals</Filter>
     </ClInclude>
     <ClInclude Include="Game\Misc\AutoRepair.hpp">
 

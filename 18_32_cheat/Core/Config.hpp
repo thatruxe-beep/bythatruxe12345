@@ -34,8 +34,6 @@ struct config_t
     bool wh = false;
     keybind_t wh_bind{};
     float whDistance = 100.0f;
-    bool adminmode = false;
-    keybind_t adminmode_bind{};
     bool speedhack = false;
     keybind_t speedhack_bind{};
     float MaxSpd = 5.0f;

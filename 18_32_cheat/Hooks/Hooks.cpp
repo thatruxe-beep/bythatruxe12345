@@ -54,7 +54,6 @@ namespace
         g_cfg.removals = false;
         g_cfg.carcolor = false;
         g_cfg.nocol = false;
-        g_cfg.adminmode = false;
         g_cfg.randomgodmode = false;
         g_cfg.autorepair = false;
         g_cfg.ram = false;

@@ -9,11 +9,18 @@ void NoSpread::Update()
 
     auto each = [](auto fn)
     {
-        for (int t = 22; t <= 38; t++)
+        // Идентификаторы оружия GTA SA: 22 (Colt 45) .. 38 (Minigun).
+        // Дробовики: 25 (дробовик), 26 (обрез), 27 (Combat Shotgun) —
+        // числовые ID, не зависящие от ревизий enum в plugin-sdk.
+        // NoSpread их не трогает: у дробовиков всегда родной разброс дроби.
+        constexpr int kFirstWeaponId = 22;
+        constexpr int kLastWeaponId = 38;
+        constexpr int kFirstShotgunId = 25;
+        constexpr int kLastShotgunId = 27;
+
+        for (int t = kFirstWeaponId; t <= kLastWeaponId; t++)
         {
-            // MTA shotguns use their native pellet spread. NoSpread applies to
-            // every other firearm from pistols through heavy weapons.
-            if (t >= WEAPONTYPE_SHOTGUN && t <= WEAPONTYPE_SPAS12)
+            if (t >= kFirstShotgunId && t <= kLastShotgunId)
             {
                 continue;
             }
