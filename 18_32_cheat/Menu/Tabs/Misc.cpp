@@ -26,6 +26,12 @@ void Menu::DrawMisc()
         BindableCheckbox("nofall", tr("Без урона от падения", "No fall damage"),
             &g_cfg.nofall, &g_cfg.nofall_bind);
         GroupEnd();
+
+        ImGui::NextColumn();
+        GroupBegin(tr("Стример", "Streamer"));
+        BindableCheckbox("streamer", tr("Стример мод", "Streamer mode"),
+            &g_cfg.streamer, &g_cfg.streamer_bind);
+        GroupEnd();
     }
     else if (subtab == 1)
     {

@@ -149,6 +149,9 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
             callForceCursorVisible(Cself, false, false);
         }
         RestoreWindowProcedure();
+        // The overlay window belongs to this render thread and its WndProc
+        // lives in this DLL: destroy it here, before the module unloads.
+        StreamerMode::Shutdown();
         Runtime::RequestUnload();
         return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
     }
@@ -158,6 +161,8 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         InitImGui(self);
         imgui_initialized = true;
     }
+
+    StreamerMode::Update(self, hGameWindow);
 
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -237,7 +242,23 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
 
     ImGui::EndFrame();
     ImGui::Render();
-    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+
+    if (StreamerMode::IsActive())
+    {
+        // Streamer mode: render the UI onto the capture-protected overlay
+        // window instead of the game back buffer, so OBS/Discord recordings
+        // see a clean game. While the overlay is hidden (game unfocused) the
+        // draw data is dropped entirely rather than leaked to the back buffer.
+        if (StreamerMode::BeginFrame())
+        {
+            ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+            StreamerMode::EndFrame();
+        }
+    }
+    else
+    {
+        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+    }
 
     return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
 }

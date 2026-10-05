@@ -204,6 +204,8 @@
 
     <ClCompile Include="Game\Misc\NoFall.cpp" />
 
+    <ClCompile Include="Game\Misc\StreamerMode.cpp" />
+
     <ClCompile Include="Game\Misc\CamHack.cpp" />
 
     <ClCompile Include="Game\Misc\FastRot.cpp" />
@@ -296,6 +298,8 @@
 
     <ClCompile Include="Gfx\Fonts.cpp" />
 
+    <ClCompile Include="Gfx\ProtectedOverlay.cpp" />
+
     <ClCompile Include="Gfx\Texture.cpp" />
 
     <ClCompile Include="Assets\Assets.cpp" />
@@ -379,6 +383,8 @@
 
     <ClInclude Include="Game\Misc\NoFall.hpp" />
 
+    <ClInclude Include="Game\Misc\StreamerMode.hpp" />
+
     <ClInclude Include="Game\Misc\CamHack.hpp" />
 
     <ClInclude Include="Game\Misc\FastRot.hpp" />
@@ -442,6 +448,8 @@
     <ClInclude Include="Gfx\Blur.hpp" />
 
     <ClInclude Include="Gfx\Fonts.hpp" />
+
+    <ClInclude Include="Gfx\ProtectedOverlay.hpp" />
 
     <ClInclude Include="Gfx\Texture.hpp" />
 

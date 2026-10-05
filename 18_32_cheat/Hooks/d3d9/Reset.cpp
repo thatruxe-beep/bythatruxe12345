@@ -9,6 +9,8 @@
 
 #include "Gfx/Blur.hpp"
 
+#include "Game/Misc/StreamerMode.hpp"
+
 #include "Reset.hpp"
 
 using tReset = HRESULT(__stdcall*)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*);
@@ -29,12 +31,14 @@ namespace
 HRESULT __stdcall hkReset(IDirect3DDevice9* self, D3DPRESENT_PARAMETERS* presentationParameters)
 {
     ResetCallGuard callGuard;
+    StreamerMode::OnBeforeDeviceReset();
     Blur::OnReset();
     ImGui_ImplDX9_InvalidateDeviceObjects();
 
     HRESULT result = oReset(self, presentationParameters);
 
     ImGui_ImplDX9_CreateDeviceObjects();
+    StreamerMode::OnAfterReset();
 
     return result;
 }

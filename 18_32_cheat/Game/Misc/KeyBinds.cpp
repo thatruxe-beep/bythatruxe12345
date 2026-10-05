@@ -71,6 +71,7 @@ void KeyBinds::Update()
     ProcessBind(g_cfg.aspect_bind, g_cfg.aspect);
     ProcessBind(g_cfg.fov_bind, g_cfg.fov);
     ProcessBind(g_cfg.camhack_bind, g_cfg.camhack);
+    ProcessBind(g_cfg.streamer_bind, g_cfg.streamer);
     ProcessBind(g_cfg.nocol_bind, g_cfg.nocol);
     ProcessBind(g_cfg.removals_bind, g_cfg.removals);
     ProcessBind(g_cfg.skychange_bind, g_cfg.skychange);
