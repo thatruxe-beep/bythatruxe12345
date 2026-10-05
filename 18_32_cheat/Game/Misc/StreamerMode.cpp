@@ -86,14 +86,16 @@ namespace
             return;
         }
 
-        // Walk the 32-bit address space and sum the free regions plus the
-        // largest contiguous one: allocation failures in a 32-bit process
-        // are usually caused by fragmentation, not by committed bytes.
+        // Walk the whole user address space. A LargeAddressAware 32-bit
+        // process on 64-bit Windows gets 4 GB, so the walk must not stop at
+        // the 2 GB mark - the first log showed private=2147MB, which is only
+        // possible with LAA. Allocation failures come from fragmentation:
+        // sum the free regions and track the largest contiguous one.
         unsigned long long totalFree = 0;
         unsigned long long largestFree = 0;
         MEMORY_BASIC_INFORMATION info{};
 
-        for (uintptr_t address = 0; address < 0x7FFF0000u;)
+        for (uintptr_t address = 0;;)
         {
             if (VirtualQuery(reinterpret_cast<void*>(address), &info, sizeof(info)) == 0)
             {
@@ -110,14 +112,71 @@ namespace
                 }
             }
 
-            address += info.RegionSize;
+            const uintptr_t next = address + info.RegionSize;
+
+            if (next <= address || next > 0xFFFFF000ULL)
+            {
+                break;
+            }
+
+            address = next;
         }
 
-        LogF("%s: mem private=%lluMB vfree=%lluMB largest=%lluMB",
+        char largest[24];
+
+        if (largestFree >= (1ULL << 20))
+        {
+            snprintf(largest, sizeof(largest), "%lluMB", largestFree >> 20);
+        }
+        else
+        {
+            snprintf(largest, sizeof(largest), "%lluKB", largestFree >> 10);
+        }
+
+        LogF("%s: mem private=%lluMB vfree=%lluMB largest=%s%s",
             context,
             (unsigned long long)counters.PrivateUsage >> 20,
             totalFree >> 20,
-            largestFree >> 20);
+            largest,
+            largestFree < (16ULL << 20) ? " LOW!" : "");
+    }
+
+    void LogSystemInfo()
+    {
+        // The LargeAddressAware flag decides whether this 32-bit process gets
+        // a 2 GB or a 4 GB user address space - the single biggest lever for
+        // the 0xE0000008 OOM fatal. Read it straight from the mapped PE
+        // headers of the main executable.
+        int laa = -1;
+        const unsigned char* base = reinterpret_cast<const unsigned char*>(GetModuleHandleW(nullptr));
+
+        if (base && base[0] == 'M' && base[1] == 'Z')
+        {
+            const unsigned int e_lfanew = *reinterpret_cast<const unsigned int*>(base + 0x3C);
+
+            if (e_lfanew >= 0x40 && e_lfanew < 0x1000)
+            {
+                // IMAGE_NT_HEADERS: Signature(4) IMAGE_FILE_HEADER: ... Characteristics at +18
+                const unsigned long characteristics =
+                    *reinterpret_cast<const unsigned long*>(base + e_lfanew + 4 + 18);
+                laa = (characteristics & 0x0020UL) != 0 ? 1 : 0;
+            }
+        }
+
+        // Commit limit: when RAM + pagefile are exhausted, allocations fail
+        // even with free address space - that is the other 0xE0000008 path.
+        MEMORYSTATUSEX status{};
+        status.dwLength = sizeof(status);
+        GlobalMemoryStatusEx(&status);
+
+        LogF("exe laa=%d (address space %s), libcef=%d",
+            laa,
+            laa == 1 ? "4GB" : (laa == 0 ? "2GB" : "?"),
+            GetModuleHandleW(L"libcef.dll") != nullptr ? 1 : 0);
+        LogF("commit limit=%lluMB avail=%lluMB, phys avail=%lluMB",
+            (unsigned long long)status.ullTotalPageFile >> 20,
+            (unsigned long long)status.ullAvailPageFile >> 20,
+            (unsigned long long)status.ullAvailPhys >> 20);
     }
 }
 
@@ -129,6 +188,7 @@ void StreamerMode::Update(IDirect3DDevice9* device, HWND gameWindow)
         LogOpen();
         LogF("session start, streamer=%d, build " __DATE__ " " __TIME__,
             g_cfg.streamer ? 1 : 0);
+        LogSystemInfo();
         LogMemory("session");
     }
 
