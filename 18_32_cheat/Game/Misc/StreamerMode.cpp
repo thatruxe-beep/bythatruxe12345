@@ -304,3 +304,24 @@ void StreamerMode::Shutdown()
         overlayFailed = false;
     }
 }
+
+void StreamerMode::Log(const char* format, ...)
+{
+    if (!g_log.is_open())
+    {
+        return;
+    }
+
+    char text[176];
+    va_list args;
+    va_start(args, format);
+    const int written = vsnprintf(text, sizeof(text), format, args);
+    va_end(args);
+
+    if (written <= 0)
+    {
+        return;
+    }
+
+    LogF("%s", text);
+}

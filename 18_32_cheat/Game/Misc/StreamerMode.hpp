@@ -19,4 +19,7 @@ public:
     static void OnBeforeDeviceReset();
     static void OnAfterDeviceReset();
     static void Shutdown();
+    // Диагностика: строка в C:\18_32_cheat\overlay.log (журнал открывается
+    // с первого кадра Present). Используется и другими модулями.
+    static void Log(const char* format, ...);
 };
