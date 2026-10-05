@@ -1,6 +1,6 @@
 #include "Gfx/ProtectedOverlay.hpp"
 
-#include <dwmapi.h>
+#include <cstring>
 
 #ifndef WDA_EXCLUDEFROMCAPTURE
 #define WDA_EXCLUDEFROMCAPTURE 0x00000011
@@ -13,13 +13,29 @@ namespace
     HWND gameWindow = nullptr;
     HWND overlayWindow = nullptr;
     IDirect3DDevice9* device = nullptr;
-    IDirect3DSwapChain9* swapChain = nullptr;
+
+    // Offscreen UI target on GTA's own device. No additional swap chain and
+    // no second Present: MTA hooks Present and core.dll treats unexpected
+    // graphics state on the device as fatal (the 0xE0000008 RaiseException).
+    // The finished frame is downloaded with GetRenderTargetData and given to
+    // the capture-protected layered window via UpdateLayeredWindow, which the
+    // DWM blends above the game.
+    IDirect3DTexture9* uiTexture = nullptr;
+    IDirect3DSurface9* uiSurface = nullptr;
+    IDirect3DSurface9* downloadSurface = nullptr;
     IDirect3DSurface9* previousRenderTarget = nullptr;
     IDirect3DSurface9* previousDepthStencil = nullptr;
-    D3DPRESENT_PARAMETERS params{};
-    D3DFORMAT fallbackFormat = D3DFMT_X8R8G8B8;
-    int currentWidth = 0;
-    int currentHeight = 0;
+
+    HDC screenDc = nullptr;
+    HDC memoryDc = nullptr;
+    HBITMAP dib = nullptr;
+    HBITMAP dcDefaultBitmap = nullptr;
+    void* dibBits = nullptr;
+
+    int surfaceWidth = 0;
+    int surfaceHeight = 0;
+    int dibWidth = 0;
+    int dibHeight = 0;
     bool classRegistered = false;
 
     LRESULT CALLBACK OverlayWndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
@@ -70,54 +86,186 @@ namespace
         }
     }
 
-    void ReleaseSwapChain()
+    void ReleaseD3DResources()
     {
-        ReleaseSavedSurfaces();
-        if (swapChain)
+        if (uiSurface)
         {
-            swapChain->Release();
-            swapChain = nullptr;
+            uiSurface->Release();
+            uiSurface = nullptr;
         }
+        if (uiTexture)
+        {
+            uiTexture->Release();
+            uiTexture = nullptr;
+        }
+        if (downloadSurface)
+        {
+            downloadSurface->Release();
+            downloadSurface = nullptr;
+        }
+        surfaceWidth = 0;
+        surfaceHeight = 0;
     }
 
-    bool CreateSwapChain(int width, int height)
+    void ReleaseGdi()
     {
-        if (!device || !overlayWindow || width <= 0 || height <= 0)
+        if (memoryDc && dib)
+        {
+            SelectObject(memoryDc, dcDefaultBitmap);
+        }
+        if (dib)
+        {
+            DeleteObject(dib);
+            dib = nullptr;
+            dibBits = nullptr;
+        }
+        if (memoryDc)
+        {
+            DeleteDC(memoryDc);
+            memoryDc = nullptr;
+        }
+        if (screenDc)
+        {
+            ReleaseDC(nullptr, screenDc);
+            screenDc = nullptr;
+        }
+        dcDefaultBitmap = nullptr;
+        dibWidth = 0;
+        dibHeight = 0;
+    }
+
+    bool EnsureD3DResources(int width, int height)
+    {
+        if (uiTexture && uiSurface && downloadSurface
+            && width == surfaceWidth && height == surfaceHeight)
+        {
+            return true;
+        }
+
+        ReleaseD3DResources();
+
+        if (FAILED(device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET,
+            D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &uiTexture, nullptr)))
         {
             return false;
         }
-
-        ReleaseSwapChain();
-
-        params.BackBufferWidth = width;
-        params.BackBufferHeight = height;
-        params.hDeviceWindow = overlayWindow;
-        params.Windowed = TRUE;
-        params.SwapEffect = D3DSWAPEFFECT_DISCARD;
-        params.MultiSampleType = D3DMULTISAMPLE_NONE;
-        params.MultiSampleQuality = 0;
-        params.EnableAutoDepthStencil = FALSE;
-        params.AutoDepthStencilFormat = D3DFMT_UNKNOWN;
-        params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-        params.BackBufferFormat = D3DFMT_A8R8G8B8;
-
-        HRESULT result = device->CreateAdditionalSwapChain(&params, &swapChain);
-        if (FAILED(result))
+        if (FAILED(uiTexture->GetSurfaceLevel(0, &uiSurface)))
         {
-            // Some older D3D9 drivers reject A8R8G8B8 for an additional chain.
-            // The DWM glass surface remains transparent with the primary format.
-            params.BackBufferFormat = fallbackFormat;
-            result = device->CreateAdditionalSwapChain(&params, &swapChain);
+            ReleaseD3DResources();
+            return false;
         }
-
-        if (FAILED(result))
+        if (FAILED(device->CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8,
+            D3DPOOL_SYSTEMMEMORY, &downloadSurface, nullptr)))
         {
+            ReleaseD3DResources();
             return false;
         }
 
-        currentWidth = width;
-        currentHeight = height;
+        surfaceWidth = width;
+        surfaceHeight = height;
         return true;
+    }
+
+    bool EnsureGdiResources(int width, int height)
+    {
+        if (dib && dibBits && width == dibWidth && height == dibHeight)
+        {
+            return true;
+        }
+
+        if (!screenDc)
+        {
+            screenDc = GetDC(nullptr);
+
+            if (!screenDc)
+            {
+                return false;
+            }
+        }
+        if (!memoryDc)
+        {
+            memoryDc = CreateCompatibleDC(screenDc);
+
+            if (!memoryDc)
+            {
+                return false;
+            }
+        }
+
+        if (dib)
+        {
+            SelectObject(memoryDc, dcDefaultBitmap);
+            DeleteObject(dib);
+            dib = nullptr;
+            dibBits = nullptr;
+        }
+
+        BITMAPINFO info{};
+        info.bmiHeader.biSize = sizeof(info.bmiHeader);
+        info.bmiHeader.biWidth = width;
+        info.bmiHeader.biHeight = -height; // top-down: first row is the top
+        info.bmiHeader.biPlanes = 1;
+        info.bmiHeader.biBitCount = 32;
+        info.bmiHeader.biCompression = BI_RGB;
+
+        dib = CreateDIBSection(screenDc, &info, DIB_RGB_COLORS, &dibBits, nullptr, 0);
+
+        if (!dib)
+        {
+            return false;
+        }
+
+        dcDefaultBitmap = (HBITMAP)SelectObject(memoryDc, dib);
+        dibWidth = width;
+        dibHeight = height;
+        return true;
+    }
+
+    void UploadFrame(int width, int height)
+    {
+        if (FAILED(device->GetRenderTargetData(uiSurface, downloadSurface)))
+        {
+            return;
+        }
+
+        D3DLOCKED_RECT locked{};
+
+        if (FAILED(downloadSurface->LockRect(&locked, nullptr, D3DLOCK_READONLY)))
+        {
+            return;
+        }
+
+        const unsigned char* source = static_cast<const unsigned char*>(locked.pBits);
+        unsigned char* target = static_cast<unsigned char*>(dibBits);
+        const int sourcePitch = locked.Pitch;
+        const int targetPitch = width * 4;
+
+        // Alpha blending the UI onto a target cleared to (0,0,0,0) leaves the
+        // color channels premultiplied, which is exactly what
+        // UpdateLayeredWindow expects - so this is a plain pitch-aware row
+        // copy, no per-pixel work.
+        if (sourcePitch == targetPitch)
+        {
+            std::memcpy(target, source, static_cast<size_t>(targetPitch) * height);
+        }
+        else
+        {
+            for (int y = 0; y < height; ++y)
+            {
+                std::memcpy(
+                    target + static_cast<size_t>(y) * targetPitch,
+                    source + static_cast<size_t>(y) * sourcePitch,
+                    targetPitch);
+            }
+        }
+
+        downloadSurface->UnlockRect();
+
+        POINT sourcePoint{ 0, 0 };
+        SIZE windowSize{ width, height };
+        BLENDFUNCTION blend{ AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+        UpdateLayeredWindow(overlayWindow, screenDc, nullptr, &windowSize,
+            memoryDc, &sourcePoint, 0, &blend, ULW_ALPHA);
     }
 }
 
@@ -179,18 +327,9 @@ bool ProtectedOverlay::Initialize(HWND targetGameWindow, IDirect3DDevice9* gameD
         return false;
     }
 
-    SetLayeredWindowAttributes(overlayWindow, 0, 255, LWA_ALPHA);
-
-    MARGINS margins{ -1, -1, -1, -1 };
-    if (HMODULE dwm = LoadLibraryW(L"dwmapi.dll"))
-    {
-        using ExtendFrameFn = HRESULT(WINAPI*)(HWND, const MARGINS*);
-        if (auto extendFrame = reinterpret_cast<ExtendFrameFn>(GetProcAddress(dwm, "DwmExtendFrameIntoClientArea")))
-        {
-            extendFrame(overlayWindow, &margins);
-        }
-        FreeLibrary(dwm);
-    }
+    // Content arrives with the first UpdateLayeredWindow call: a layered
+    // window that has not been given content yet is simply not displayed, so
+    // there is no empty-frame flash and no need for SetLayeredWindowAttributes.
 
     if (!ApplyCaptureProtection(overlayWindow))
     {
@@ -198,18 +337,7 @@ bool ProtectedOverlay::Initialize(HWND targetGameWindow, IDirect3DDevice9* gameD
         return false;
     }
 
-    // Reuse the primary chain's driver-compatible format and flags as fallback.
-    if (IDirect3DSwapChain9* primary = nullptr; SUCCEEDED(device->GetSwapChain(0, &primary)))
-    {
-        D3DPRESENT_PARAMETERS primaryParams{};
-        if (SUCCEEDED(primary->GetPresentParameters(&primaryParams)) && primaryParams.BackBufferFormat != D3DFMT_UNKNOWN)
-        {
-            fallbackFormat = primaryParams.BackBufferFormat;
-        }
-        primary->Release();
-    }
-
-    if (!CreateSwapChain(width, height))
+    if (!EnsureGdiResources(width, height) || !EnsureD3DResources(width, height))
     {
         Shutdown();
         return false;
@@ -252,7 +380,7 @@ bool ProtectedOverlay::BeginFrame()
         height,
         SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
-    if ((!swapChain || width != currentWidth || height != currentHeight) && !CreateSwapChain(width, height))
+    if (!EnsureD3DResources(width, height) || !EnsureGdiResources(width, height))
     {
         return false;
     }
@@ -265,16 +393,8 @@ bool ProtectedOverlay::BeginFrame()
     // A device is allowed to have no depth-stencil surface.
     device->GetDepthStencilSurface(&previousDepthStencil);
 
-    IDirect3DSurface9* overlayBackBuffer = nullptr;
-    if (FAILED(swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &overlayBackBuffer)))
-    {
-        ReleaseSavedSurfaces();
-        return false;
-    }
-
     device->SetDepthStencilSurface(nullptr);
-    const HRESULT targetResult = device->SetRenderTarget(0, overlayBackBuffer);
-    overlayBackBuffer->Release();
+    const HRESULT targetResult = device->SetRenderTarget(0, uiSurface);
     if (FAILED(targetResult))
     {
         if (previousDepthStencil)
@@ -291,7 +411,7 @@ bool ProtectedOverlay::BeginFrame()
 
 void ProtectedOverlay::EndFrame()
 {
-    if (!device || !swapChain)
+    if (!device || !uiSurface || !downloadSurface || !dibBits)
     {
         ReleaseSavedSurfaces();
         return;
@@ -307,33 +427,27 @@ void ProtectedOverlay::EndFrame()
     }
     ReleaseSavedSurfaces();
 
-    if (FAILED(swapChain->Present(nullptr, nullptr, overlayWindow, nullptr, 0)))
-    {
-        // Lost or hung chain: drop it so the next BeginFrame (or a device
-        // reset) rebuilds it instead of presenting a dead surface forever.
-        ReleaseSwapChain();
-    }
+    UploadFrame(surfaceWidth, surfaceHeight);
 }
 
 void ProtectedOverlay::BeforeDeviceReset()
 {
-    ReleaseSwapChain();
+    ReleaseSavedSurfaces();
+    ReleaseD3DResources();
 }
 
 void ProtectedOverlay::AfterDeviceReset()
 {
-    POINT origin{};
-    int width = 0;
-    int height = 0;
-    if (GetGameClientBounds(origin, width, height))
-    {
-        CreateSwapChain(width, height);
-    }
+    // The render target and download surface live in D3DPOOL_DEFAULT and are
+    // released in BeforeDeviceReset; EnsureD3DResources recreates them on the
+    // next BeginFrame with the post-reset client size.
 }
 
 void ProtectedOverlay::Shutdown()
 {
-    ReleaseSwapChain();
+    ReleaseSavedSurfaces();
+    ReleaseD3DResources();
+    ReleaseGdi();
     if (device)
     {
         device->Release();
