@@ -155,7 +155,7 @@ namespace
             return false;
         }
         if (FAILED(device->CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8,
-            D3DPOOL_SYSTEMMEMORY, &downloadSurface, nullptr)))
+            D3DPOOL_SYSTEMMEM, &downloadSurface, nullptr)))
         {
             ReleaseD3DResources();
             return false;
@@ -438,9 +438,10 @@ void ProtectedOverlay::BeforeDeviceReset()
 
 void ProtectedOverlay::AfterDeviceReset()
 {
-    // The render target and download surface live in D3DPOOL_DEFAULT and are
-    // released in BeforeDeviceReset; EnsureD3DResources recreates them on the
-    // next BeginFrame with the post-reset client size.
+    // The render-target texture lives in D3DPOOL_DEFAULT and the download
+    // surface in D3DPOOL_SYSTEMMEM; both are released in BeforeDeviceReset,
+    // and EnsureD3DResources recreates them on the next BeginFrame with the
+    // post-reset client size.
 }
 
 void ProtectedOverlay::Shutdown()
