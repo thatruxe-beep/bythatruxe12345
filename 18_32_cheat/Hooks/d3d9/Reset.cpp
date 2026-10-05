@@ -38,7 +38,7 @@ HRESULT __stdcall hkReset(IDirect3DDevice9* self, D3DPRESENT_PARAMETERS* present
     HRESULT result = oReset(self, presentationParameters);
 
     ImGui_ImplDX9_CreateDeviceObjects();
-    StreamerMode::OnAfterReset();
+    StreamerMode::OnAfterDeviceReset();
 
     return result;
 }
