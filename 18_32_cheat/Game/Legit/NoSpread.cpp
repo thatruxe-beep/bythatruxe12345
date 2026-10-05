@@ -13,16 +13,19 @@
 
 namespace
 {
-    // Ванильная точность дробовиков (колонка Accuracy из data\weapons.dat),
-    // по уровню навыка 0..3. Читается из файла игры, а не из памяти: сервер
+    // Ванильная точность дробовиков (колонка Accuracy из data\weapon.dat),
+    // по уровню навыка 0..3. Значения из оригинального weapon.dat зашиты
+    // прямо в код, чтобы защита работала даже без файла; если файл игры
+    // читается — он переопределяет их. Зачем всё это: сервер
     // (setWeaponProperty) может поднять точность дробовиков при подключении,
     // и тогда снапшот "родной" точности в момент включения NoSpread уже
-    // испорчен. -1 = файл не прочитан, тогда остаётся снапшот при включении.
+    // испорчен. Слот навыка 3 (только для Colt45) дробовикам не существует —
+    // туда дублируется уровень 2.
     float vanillaAccuracy[3][4]
     {
-        { -1.0f, -1.0f, -1.0f, -1.0f },
-        { -1.0f, -1.0f, -1.0f, -1.0f },
-        { -1.0f, -1.0f, -1.0f, -1.0f },
+        { 1.0f, 1.2f, 1.4f, 1.4f },  // 25 SHOTGUN (в weapon.dat зовётся SHOTGUN)
+        { 0.7f, 0.8f, 0.9f, 0.9f },  // 26 SAWNOFF
+        { 1.4f, 1.8f, 2.0f, 2.0f },  // 27 SPAS12 (combat shotgun)
     };
 
     bool vanillaReady = false;
@@ -56,7 +59,9 @@ namespace
             return;
         }
 
-        std::ifstream file(std::string(directory) + "data\\weapons.dat");
+        // Игра сама открывает DATA\WEAPON.DAT (CWeaponInfo::LoadWeaponData) —
+        // имя файла в единственном числе.
+        std::ifstream file(std::string(directory) + "data\\weapon.dat");
 
         if (!file.is_open())
         {
@@ -88,9 +93,11 @@ namespace
 
             int index = -1;
 
-            if (token[0] == "CHROMEGUN")      index = 0; // 25 дробовик
-            else if (token[0] == "SAWNOFF")   index = 1; // 26 обрез
-            else if (token[0] == "SHOTGSPA")  index = 2; // 27 combat shotgun
+            // Имена из weapon.dat (сверено с реверсом CWeaponInfo::FindWeaponType):
+            // CHROMEGUN и SHOTGSPA — имена МОДЕЛЕЙ из default.ide, их тут нет.
+            if (token[0] == "SHOTGUN")       index = 0; // 25 дробовик
+            else if (token[0] == "SAWNOFF")  index = 1; // 26 обрез
+            else if (token[0] == "SPAS12")   index = 2; // 27 combat shotgun
             else
             {
                 continue;
@@ -105,7 +112,7 @@ namespace
 
             const float accuracy = static_cast<float>(atof(token[15].c_str()));
 
-            if (accuracy > 0.0f && accuracy < 2.0f)
+            if (accuracy > 0.0f && accuracy <= 2.5f)
             {
                 vanillaAccuracy[index][skill] = accuracy;
             }
