@@ -132,6 +132,23 @@ void StreamerMode::Update(IDirect3DDevice9* device, HWND gameWindow)
         LogMemory("session");
     }
 
+    // Memory trend regardless of the streamer toggle: the 0xE0000008 fatal
+    // happens with the mode off too (confirmed by a user log where the
+    // overlay never initialized), and the trend up to the crash is the
+    // evidence - one snapshot per 30 seconds of wall clock.
+    static DWORD nextMemoryLog = 0;
+    const DWORD now = GetTickCount();
+
+    if (nextMemoryLog == 0)
+    {
+        nextMemoryLog = now + 30000;
+    }
+    else if (now >= nextMemoryLog)
+    {
+        LogMemory("tick");
+        nextMemoryLog = now + 30000;
+    }
+
     if (g_cfg.streamer)
     {
         if (!overlayActive && !overlayFailed && gameWindow && device)
@@ -170,13 +187,6 @@ bool StreamerMode::BeginFrame()
     }
 
     ++g_frame;
-
-    // Memory snapshot twice a minute: enough to see a leak or a ceiling
-    // approach without flooding the log.
-    if (g_frame % 3600 == 0)
-    {
-        LogMemory("periodic");
-    }
 
     // While the overlay stays hidden (game unfocused/minimized) only the
     // transition is logged, not every skipped frame.
