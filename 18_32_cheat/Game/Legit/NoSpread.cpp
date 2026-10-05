@@ -72,8 +72,13 @@ void NoSpread::Update()
         wasOn = true;
     }
 
-    each([](CWeaponInfo* wi, int, int)
+    each([](CWeaponInfo* wi, int ti, int si)
     {
-        *reinterpret_cast<int*>(&wi->m_fAccuracy) = 1265353216;
+        // ti = ID - 22, дробовики 25/26/27 -> ti 3/4/5: им каждый кадр
+        // возвращается снапшотная (родная) точность, иначе сервер
+        // (setWeaponProperty) может сам выставить им максимальную точность -
+        // выглядело бы, будто NoSpread работает и на дробовиках.
+        const bool isShotgun = ti >= 3 && ti <= 5;
+        *reinterpret_cast<int*>(&wi->m_fAccuracy) = isShotgun ? snap[ti][si] : 1265353216;
     });
 }
