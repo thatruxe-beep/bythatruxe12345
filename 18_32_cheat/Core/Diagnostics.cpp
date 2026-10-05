@@ -5,8 +5,8 @@
 #include <cstdarg>
 #include <cstdio>
 #include <fstream>
-#include <psapi.h>
 #include <windows.h>
+#include <psapi.h>
 
 namespace
 {

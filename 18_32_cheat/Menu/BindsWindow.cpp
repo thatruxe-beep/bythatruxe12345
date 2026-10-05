@@ -415,5 +415,3 @@ void Menu::DrawBinds()
     ImGui::PopStyleColor();
     ImGui::PopFont();
 }
-nt();
-}
