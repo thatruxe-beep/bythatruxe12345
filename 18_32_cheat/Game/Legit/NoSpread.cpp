@@ -2,6 +2,8 @@
 
 #include "Game/Legit/NoSpread.hpp"
 
+#include "Core/Diagnostics.hpp"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cwchar>
@@ -133,7 +135,7 @@ void NoSpread::Update()
     {
         vanillaReady = true;
         LoadVanillaShotgunAccuracy();
-        StreamerMode::Log(
+        Diagnostics::Log(
             "nospread: weapons.dat 25=%.2f/%.2f/%.2f/%.2f 26=%.2f/%.2f/%.2f/%.2f 27=%.2f/%.2f/%.2f/%.2f",
             vanillaAccuracy[0][0], vanillaAccuracy[0][1], vanillaAccuracy[0][2], vanillaAccuracy[0][3],
             vanillaAccuracy[1][0], vanillaAccuracy[1][1], vanillaAccuracy[1][2], vanillaAccuracy[1][3],
@@ -181,7 +183,7 @@ void NoSpread::Update()
         });
         wasOn = true;
 
-        StreamerMode::Log(
+        Diagnostics::Log(
             "nospread: on; live 25=%.2f/%.2f/%.2f/%.2f 26=%.2f/%.2f/%.2f/%.2f 27=%.2f/%.2f/%.2f/%.2f",
             *reinterpret_cast<float*>(&snap[3][0]), *reinterpret_cast<float*>(&snap[3][1]),
             *reinterpret_cast<float*>(&snap[3][2]), *reinterpret_cast<float*>(&snap[3][3]),

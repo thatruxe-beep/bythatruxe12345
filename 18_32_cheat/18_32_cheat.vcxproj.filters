@@ -250,12 +250,6 @@
 
     </ClCompile>
 
-    <ClCompile Include="Game\Misc\StreamerMode.cpp">
-
-      <Filter>Game\Misc</Filter>
-
-    </ClCompile>
-
     <ClCompile Include="Game\Misc\FastRot.cpp">
 
       <Filter>Game\Misc</Filter>
@@ -511,6 +505,12 @@
 
     </ClCompile>
 
+    <ClCompile Include="Core\Diagnostics.cpp">
+
+      <Filter>Core</Filter>
+
+    </ClCompile>
+
     <ClCompile Include="Core\Color.cpp">
 
       <Filter>Core</Filter>
@@ -530,12 +530,6 @@
     </ClCompile>
 
     <ClCompile Include="Gfx\Fonts.cpp">
-
-      <Filter>Gfx</Filter>
-
-    </ClCompile>
-
-    <ClCompile Include="Gfx\ProtectedOverlay.cpp">
 
       <Filter>Gfx</Filter>
 
@@ -708,12 +702,6 @@
     </ClInclude>
 
     <ClInclude Include="Game\Misc\NoFall.hpp">
-
-      <Filter>Game\Misc</Filter>
-
-    </ClInclude>
-
-    <ClInclude Include="Game\Misc\StreamerMode.hpp">
 
       <Filter>Game\Misc</Filter>
 
@@ -902,6 +890,12 @@
 
     </ClInclude>
 
+    <ClInclude Include="Core\Diagnostics.hpp">
+
+      <Filter>Core</Filter>
+
+    </ClInclude>
+
     <ClInclude Include="Gfx\Blur.hpp">
 
       <Filter>Gfx</Filter>
@@ -909,12 +903,6 @@
     </ClInclude>
 
     <ClInclude Include="Gfx\Fonts.hpp">
-
-      <Filter>Gfx</Filter>
-
-    </ClInclude>
-
-    <ClInclude Include="Gfx\ProtectedOverlay.hpp">
 
       <Filter>Gfx</Filter>
 

@@ -15,6 +15,7 @@
 #include "Gfx/Fonts.hpp"
 #include "Menu/Menu.hpp"
 #include "Core/Config.hpp"
+#include "Core/Diagnostics.hpp"
 #include "Core/Runtime.hpp"
 #include "Game/Features.h"
 
@@ -149,9 +150,6 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
             callForceCursorVisible(Cself, false, false);
         }
         RestoreWindowProcedure();
-        // The overlay window belongs to this render thread and its WndProc
-        // lives in this DLL: destroy it here, before the module unloads.
-        StreamerMode::Shutdown();
         Runtime::RequestUnload();
         return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
     }
@@ -162,7 +160,7 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
         imgui_initialized = true;
     }
 
-    StreamerMode::Update(self, hGameWindow);
+    Diagnostics::Frame();
 
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -241,26 +239,8 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
 
     ImGui::EndFrame();
     ImGui::Render();
-
-    if (StreamerMode::IsActive())
-    {
-        // Streamer mode: present the game's own clean frame first, then draw
-        // the UI onto the capture-protected overlay. Presenting the overlay
-        // chain after (not inside) the game's Present call keeps MTA's
-        // graphics hooks from ever seeing a nested Present on the same
-        // device, which core.dll treats as a fatal state.
-        const HRESULT result = oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
-
-        if (StreamerMode::BeginFrame())
-        {
-            ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-            StreamerMode::EndFrame();
-        }
-
-        return result;
-    }
-
     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+
     return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
 }
 

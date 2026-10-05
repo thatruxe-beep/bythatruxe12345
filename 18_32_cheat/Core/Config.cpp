@@ -335,9 +335,6 @@ bool config_t::Save(const std::string& name)
     WriteInt(body, "ram_key", ram_bind.key);
     WriteInt(body, "ram_mode", ram_bind.mode);
     WriteFloat(body, "rampower", rampower);
-    WriteBool(body, "streamer", streamer);
-    WriteInt(body, "streamer_key", streamer_bind.key);
-    WriteInt(body, "streamer_mode", streamer_bind.mode);
     WriteBool(body, "trigger", trigger);
     WriteInt(body, "trigger_key", trigger_bind.key);
     WriteInt(body, "trigger_mode", trigger_bind.mode);
@@ -574,9 +571,6 @@ void config_t::LoadTail(const std::string& key, const std::string& value)
     else if (key == "ram_key") { ReadInt(value, ram_bind.key); }
     else if (key == "ram_mode") { ReadInt(value, ram_bind.mode); }
     else if (key == "rampower") { ReadFloat(value, rampower); }
-    else if (key == "streamer") { ReadBool(value, streamer); }
-    else if (key == "streamer_key") { ReadInt(value, streamer_bind.key); }
-    else if (key == "streamer_mode") { ReadInt(value, streamer_bind.mode); }
     else if (key == "trigger") { ReadBool(value, trigger); }
     else if (key == "trigger_key") { ReadInt(value, trigger_bind.key); }
     else if (key == "trigger_mode") { ReadInt(value, trigger_bind.mode); }

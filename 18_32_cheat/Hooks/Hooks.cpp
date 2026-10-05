@@ -57,7 +57,6 @@ namespace
         g_cfg.randomgodmode = false;
         g_cfg.autorepair = false;
         g_cfg.ram = false;
-        g_cfg.streamer = false;
 
         World::Update();
         RapidFire::Update();
