@@ -23,16 +23,22 @@ void NoSpread::Update()
 
     auto each = [](auto fn)
     {
-        // Идентификаторы оружия GTA SA: 22 (Colt 45) .. 38 (Minigun),
+        // Идентификаторы оружия GTA SA: 22 (Colt 45) .. 38 (Minigun).
+        // Дробовики: 25 (дробовик), 26 (обрез), 27 (Combat Shotgun) —
         // числовые ID, не зависящие от ревизий enum в plugin-sdk.
-        // Дробовики (25 дробовик, 26 обрез, 27 Combat Shotgun) больше не
-        // исключаются: m_fAccuracy управляет и конусом разлёта дроби,
-        // поэтому NoSpread убирает разброс и у них.
+        // NoSpread их не трогает: у дробовиков всегда родной разброс дроби.
         constexpr int kFirstWeaponId = 22;
         constexpr int kLastWeaponId = 38;
+        constexpr int kFirstShotgunId = 25;
+        constexpr int kLastShotgunId = 27;
 
         for (int t = kFirstWeaponId; t <= kLastWeaponId; t++)
         {
+            if (t >= kFirstShotgunId && t <= kLastShotgunId)
+            {
+                continue;
+            }
+
             for (int s = 0; s < 4; s++)
             {
                 if (CWeaponInfo* wi = CWeaponInfo::GetWeaponInfo((eWeaponType)t, (unsigned char)s))
