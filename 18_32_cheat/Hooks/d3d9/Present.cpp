@@ -245,21 +245,23 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
 
     if (StreamerMode::IsActive())
     {
-        // Streamer mode: render the UI onto the capture-protected overlay
-        // window instead of the game back buffer, so OBS/Discord recordings
-        // see a clean game. While the overlay is hidden (game unfocused) the
-        // draw data is dropped entirely rather than leaked to the back buffer.
+        // Streamer mode: present the game's own clean frame first, then draw
+        // the UI onto the capture-protected overlay. Presenting the overlay
+        // chain after (not inside) the game's Present call keeps MTA's
+        // graphics hooks from ever seeing a nested Present on the same
+        // device, which core.dll treats as a fatal state.
+        const HRESULT result = oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
+
         if (StreamerMode::BeginFrame())
         {
             ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
             StreamerMode::EndFrame();
         }
-    }
-    else
-    {
-        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+
+        return result;
     }
 
+    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
     return oPresent(self, sourceRect, destRect, destWindowOverride, dirtyRegion);
 }
 

@@ -155,6 +155,10 @@ bool ProtectedOverlay::Initialize(HWND targetGameWindow, IDirect3DDevice9* gameD
         return false;
     }
 
+    // Top-level window on purpose: MTA (CEF/browser, input) walks the game
+    // window's children, and a foreign layered child there is asking for
+    // trouble. The overlay repositions itself over the client area every
+    // frame anyway (see BeginFrame), so no parenting is needed.
     overlayWindow = CreateWindowExW(
         WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
         kOverlayClass,
@@ -164,7 +168,7 @@ bool ProtectedOverlay::Initialize(HWND targetGameWindow, IDirect3DDevice9* gameD
         origin.y,
         width,
         height,
-        gameWindow,
+        nullptr,
         nullptr,
         windowClass.hInstance,
         nullptr);
@@ -303,7 +307,12 @@ void ProtectedOverlay::EndFrame()
     }
     ReleaseSavedSurfaces();
 
-    swapChain->Present(nullptr, nullptr, overlayWindow, nullptr, 0);
+    if (FAILED(swapChain->Present(nullptr, nullptr, overlayWindow, nullptr, 0)))
+    {
+        // Lost or hung chain: drop it so the next BeginFrame (or a device
+        // reset) rebuilds it instead of presenting a dead surface forever.
+        ReleaseSwapChain();
+    }
 }
 
 void ProtectedOverlay::BeforeDeviceReset()
