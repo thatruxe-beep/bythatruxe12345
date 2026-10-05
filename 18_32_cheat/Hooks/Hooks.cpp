@@ -70,7 +70,6 @@ namespace
         Fov::Update();
         Ram::Update();
         FastCrosshair::Update();
-        NoRecoil::Update();
         NoSpread::Update();
         NoCamCol::Update();
         CamHack::Update();

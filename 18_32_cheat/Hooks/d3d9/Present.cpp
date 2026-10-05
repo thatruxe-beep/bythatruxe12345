@@ -185,7 +185,6 @@ HRESULT __stdcall hkPresent(IDirect3DDevice9* self, const RECT* sourceRect, cons
     AutoRepair::Update();
     Ram::Update();
     FastCrosshair::Update();
-    NoRecoil::Update();
     NoSpread::Update();
     Triggerbot::Update();
     NoCamCol::Update();

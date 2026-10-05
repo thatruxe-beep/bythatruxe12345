@@ -39,7 +39,6 @@
 #include "Game/Rage/RandomGodMode.hpp"
 #include "Game/Rage/TpMarker.hpp"
 #include "Game/Legit/FastCrosshair.hpp"
-#include "Game/Rage/NoRecoil.hpp"
 #include "Game/Legit/NoSpread.hpp"
 
 #include "Game/Legit/Triggerbot.hpp"

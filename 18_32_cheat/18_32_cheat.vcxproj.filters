@@ -328,12 +328,6 @@
 
     </ClCompile>
 
-    <ClCompile Include="Game\Rage\NoRecoil.cpp">
-
-      <Filter>Game\Rage</Filter>
-
-    </ClCompile>
-
     <ClCompile Include="Game\Legit\NoSpread.cpp">
 
       <Filter>Game\Legit</Filter>
@@ -794,12 +788,6 @@
     <ClInclude Include="Game\Legit\FastCrosshair.hpp">
 
       <Filter>Game\Legit</Filter>
-
-    </ClInclude>
-
-    <ClInclude Include="Game\Rage\NoRecoil.hpp">
-
-      <Filter>Game\Rage</Filter>
 
     </ClInclude>
 

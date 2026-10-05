@@ -4,6 +4,20 @@
 
 void NoSpread::Update()
 {
+    // NoRecoil (merged here): patch the camera recoil push once per toggle.
+    // 0x008D610F is "mov esi, 0.75f" inside the recoil code - the patched
+    // "mov esi, 0" removes the recoil impulse entirely.
+    static bool recoilApplied = false;
+
+    if (g_cfg.norecoil != recoilApplied)
+    {
+        recoilApplied = g_cfg.norecoil;
+
+        const unsigned char on[] = { 0xBE, 0x00, 0x00, 0x00, 0x00 };
+        const unsigned char off[] = { 0xBE, 0x00, 0x00, 0x40, 0x3F };
+        PatchBytes(reinterpret_cast<void*>(0x008D610F), recoilApplied ? on : off, 5);
+    }
+
     static bool wasOn = false;
     static int snap[17][4] = {};
 

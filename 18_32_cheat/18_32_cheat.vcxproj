@@ -230,8 +230,6 @@
     <ClCompile Include="Game\Legit\FastCrosshair.cpp" />
 
 
-    <ClCompile Include="Game\Rage\NoRecoil.cpp" />
-
     <ClCompile Include="Game\Legit\NoSpread.cpp" />
 
     <ClCompile Include="Game\Rage\RapidFire.cpp" />
@@ -408,8 +406,6 @@
 
     <ClInclude Include="Game\Legit\FastCrosshair.hpp" />
 
-
-    <ClInclude Include="Game\Rage\NoRecoil.hpp" />
 
     <ClInclude Include="Game\Legit\NoSpread.hpp" />
 
