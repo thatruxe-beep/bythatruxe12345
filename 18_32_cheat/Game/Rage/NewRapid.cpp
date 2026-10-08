@@ -11,66 +11,75 @@ namespace
     // Old Rapid Fire zeroes them for an instant re-arm; New Rapid scales the
     // whole loop window by 1/multiplier so the weapon re-arms proportionally
     // faster while keeping the normal shooting rhythm at multiplier 1.0.
-    constexpr int kFieldCount = 6;
-    constexpr int kFirstWeaponId = 22; // Colt 45
-    constexpr int kLastWeaponId = 38;  // Minigun
-    constexpr int kSkillCount = 4;
+    constexpr int kFirstGunId = 22;        // Colt 45
+    constexpr int kLastGunId = 38;         // Minigun
+    constexpr int kFirstSkilledGunId = 22; // Colt 45 - первое оружие со скиллом
+    constexpr int kLastSkilledGunId = 32;  // Tec-9 - последнее оружие со скиллом
+    constexpr int kStdSkill = 1;           // eWeaponSkill::STD
 
-    float s_snapshot[kLastWeaponId - kFirstWeaponId + 1][kSkillCount][kFieldCount] = {};
+    float s_snapshot[NewRapid::kGunTypeCount][NewRapid::kSkillCount][NewRapid::kFieldCount] = {};
     bool s_applied = false;
-    float s_appliedScale = 1.0f;
 
-    template <typename F>
-    void EachWeaponInfo(F&& callback)
+    float* LoopFields(CWeaponInfo& info)
     {
-        for (int type = kFirstWeaponId; type <= kLastWeaponId; ++type)
-        {
-            for (int skill = 0; skill < kSkillCount; ++skill)
-            {
-                if (CWeaponInfo* info = CWeaponInfo::GetWeaponInfo(
-                        static_cast<eWeaponType>(type), static_cast<unsigned char>(skill)))
-                {
-                    callback(*info, type - kFirstWeaponId, skill);
-                }
-            }
-        }
+        return reinterpret_cast<float*>(&info.m_fAnimLoopStart);
     }
 
     void TakeSnapshot()
     {
-        EachWeaponInfo([](CWeaponInfo& info, int type, int skill)
+        for (const auto& entry : NewRapid::GunEntries())
         {
-            float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
-            for (int index = 0; index < kFieldCount; ++index)
+            const float* values = LoopFields(*entry.info);
+            for (int index = 0; index < NewRapid::kFieldCount; ++index)
             {
-                s_snapshot[type][skill][index] = values[index];
+                s_snapshot[entry.typeIndex][entry.skill][index] = values[index];
             }
-        });
+        }
     }
 
-    void RestoreSnapshot()
+    // Пишет исходные значения, поделённые на multiplier (1.0 — исходные).
+    void WriteFromSnapshot(float multiplier)
     {
-        EachWeaponInfo([](CWeaponInfo& info, int type, int skill)
+        for (const auto& entry : NewRapid::GunEntries())
         {
-            float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
-            for (int index = 0; index < kFieldCount; ++index)
+            float* values = LoopFields(*entry.info);
+            for (int index = 0; index < NewRapid::kFieldCount; ++index)
             {
-                values[index] = s_snapshot[type][skill][index];
+                values[index] = s_snapshot[entry.typeIndex][entry.skill][index] / multiplier;
             }
-        });
+        }
     }
+}
 
-    void ApplyScale(float multiplier)
+const std::vector<NewRapid::GunEntry>& NewRapid::GunEntries()
+{
+    // Адреса записей фиксированы, поэтому список строится один раз. Пары без
+    // отдельной записи не добавляем: индексы >= 80 лежат за концом aWeaponInfo
+    // и попадают в соседние глобалы игры (trapDisplay, GsubSysInfo и др.).
+    static const std::vector<GunEntry> entries = []
     {
-        EachWeaponInfo([multiplier](CWeaponInfo& info, int type, int skill)
+        std::vector<GunEntry> list;
+        for (int id = kFirstGunId; id <= kLastGunId; ++id)
         {
-            float* values = reinterpret_cast<float*>(&info.m_fAnimLoopStart);
-            for (int index = 0; index < kFieldCount; ++index)
+            const bool hasSkills = id >= kFirstSkilledGunId && id <= kLastSkilledGunId;
+            for (int skill = 0; skill < kSkillCount; ++skill)
             {
-                values[index] = s_snapshot[type][skill][index] / multiplier;
+                if (!hasSkills && skill != kStdSkill)
+                {
+                    continue;
+                }
+
+                if (CWeaponInfo* info = CWeaponInfo::GetWeaponInfo(
+                        static_cast<eWeaponType>(id), static_cast<unsigned char>(skill)))
+                {
+                    list.push_back({ info, id - kFirstGunId, skill });
+                }
             }
-        });
-    }
+        }
+        return list;
+    }();
+
+    return entries;
 }
 
 void NewRapid::Update()
@@ -81,14 +90,9 @@ void NewRapid::Update()
     const float multiplier = std::clamp(
         std::round(g_cfg.rapidfire_multiplier * 10.0f) / 10.0f, 1.0f, 10.0f);
 
-    if (!enabled)
+    if (!enabled || multiplier <= 1.0f)
     {
-        if (s_applied)
-        {
-            RestoreSnapshot();
-            s_applied = false;
-            s_appliedScale = 1.0f;
-        }
+        RestoreTable();
         return;
     }
 
@@ -99,33 +103,22 @@ void NewRapid::Update()
         // so this snapshot never captures scaled copies.
         TakeSnapshot();
         s_applied = true;
-        s_appliedScale = 1.0f;
     }
 
-    if (multiplier == s_appliedScale)
-    {
-        return;
-    }
-
-    if (multiplier <= 1.0f)
-    {
-        RestoreSnapshot();
-    }
-    else
-    {
-        ApplyScale(multiplier);
-    }
-    s_appliedScale = multiplier;
+    // Записывается каждый кадр из исходного снимка: таблица всегда совпадает
+    // с текущим множителем, даже если значения были перезаписаны.
+    WriteFromSnapshot(multiplier);
 }
 
 void NewRapid::RestoreTable()
 {
     // Called by Old Rapid Fire before it takes its own snapshot, so it never
     // captures scaled values as "originals" (and later restores garbage).
-    if (s_applied)
+    if (!s_applied)
     {
-        RestoreSnapshot();
-        s_applied = false;
-        s_appliedScale = 1.0f;
+        return;
     }
+
+    WriteFromSnapshot(1.0f);
+    s_applied = false;
 }

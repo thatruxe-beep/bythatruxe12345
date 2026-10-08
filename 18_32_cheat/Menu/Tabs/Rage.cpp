@@ -93,6 +93,16 @@ void Menu::DrawRage()
         {
             SaveGeneralConfig();
         }
+        // Таран захватывает педа (NPC) перед бампером и подбрасывает его вверх.
+        if (Checkbox(tr("Подбрасывать педов", "Launch peds"), &g_cfg.ramlaunch))
+        {
+            SaveGeneralConfig();
+        }
+        if (g_cfg.ramlaunch && SliderFloat(tr("Высота подброса", "Launch height"),
+            &g_cfg.ramlaunchheight, 5.0f, 80.0f, "%.0f m"))
+        {
+            SaveGeneralConfig();
+        }
         widget_alpha_mul = previousAlpha;
     }
     GroupEnd();

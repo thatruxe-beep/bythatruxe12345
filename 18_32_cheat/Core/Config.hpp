@@ -116,6 +116,8 @@ struct config_t
     bool ram = false;
     keybind_t ram_bind{};
     float rampower = 8.0f;
+    bool ramlaunch = true;
+    float ramlaunchheight = 30.0f;
     bool trigger = false;
     keybind_t trigger_bind{};
     float triggerdelay = 0.0f;
